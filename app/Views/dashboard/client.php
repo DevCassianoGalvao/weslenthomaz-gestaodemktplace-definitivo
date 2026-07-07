@@ -17,6 +17,9 @@ use App\Core\Format;
 
 $isInternal = $isInternal ?? false;
 $hasAnyData = !empty($referenceMonths);
+$dashboardUrl = $isInternal ? '/clients/' . (int) $client['id'] . '/dashboard' : '/dashboard';
+$currentFilters = array_filter(['month' => $selectedMonth, 'from' => $from, 'to' => $to]);
+$exportUrl = $dashboardUrl . '/export' . (empty($currentFilters) ? '' : '?' . http_build_query($currentFilters));
 
 // --- Dados para os gráficos (ApexCharts) ---
 $evolutionCategories = array_column($monthlyTotals, 'reference_month');
@@ -101,7 +104,7 @@ krsort($monthGroups);
             </div>
         <?php else: ?>
 
-            <form method="get" action="/dashboard" class="filter-bar">
+            <form method="get" action="<?= htmlspecialchars($dashboardUrl, ENT_QUOTES, 'UTF-8') ?>" class="filter-bar">
                 <div class="field">
                     <label for="month">Competência</label>
                     <select id="month" name="month" onchange="this.form.submit()">
@@ -119,7 +122,8 @@ krsort($monthGroups);
                     <input type="date" id="to" name="to" value="<?= htmlspecialchars($to ?? '', ENT_QUOTES, 'UTF-8') ?>">
                 </div>
                 <button type="submit" class="btn" style="width:auto;">Filtrar</button>
-                <a href="/dashboard" class="btn-secondary" style="text-decoration:none;display:inline-flex;align-items:center;">Limpar</a>
+                <a href="<?= htmlspecialchars($dashboardUrl, ENT_QUOTES, 'UTF-8') ?>" class="btn-secondary" style="text-decoration:none;display:inline-flex;align-items:center;">Limpar</a>
+                <a href="<?= htmlspecialchars($exportUrl, ENT_QUOTES, 'UTF-8') ?>" class="btn-link" style="text-decoration:none;margin-left:auto;">Exportar Excel</a>
             </form>
 
             <div class="kpi-grid">

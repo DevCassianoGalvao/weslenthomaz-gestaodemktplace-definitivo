@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+// Autoload das dependências do Composer (PhpSpreadsheet e afins)
+require __DIR__ . '/../vendor/autoload.php';
+
 // Autoload simples PSR-4-like: App\Foo\Bar -> app/Foo/Bar.php
 spl_autoload_register(function (string $class) {
     $prefix = 'App\\';
@@ -23,6 +26,7 @@ session_start([
 use App\Controllers\AuthController;
 use App\Controllers\ClientController;
 use App\Controllers\DashboardController;
+use App\Controllers\ExportController;
 use App\Controllers\HistoryController;
 use App\Controllers\HomeController;
 use App\Controllers\MarketplaceController;
@@ -43,6 +47,16 @@ $router->get('/', [new HomeController(), 'index'], [
 
 $router->get('/dashboard', [new HomeController(), 'dashboard'], [
     fn() => AuthMiddleware::handle(),
+]);
+
+$router->get('/dashboard/export', [new ExportController(), 'ownDashboard'], [
+    fn() => AuthMiddleware::handle(),
+    RoleMiddleware::only(['client']),
+]);
+
+$router->get('/dashboard/comparativo/export', [new ExportController(), 'comparativo'], [
+    fn() => AuthMiddleware::handle(),
+    RoleMiddleware::only(['admin', 'operator']),
 ]);
 
 $agencyOnly = [
@@ -67,6 +81,7 @@ $router->get('/periods/{id}/edit', [new PeriodController(), 'edit'], $agencyOnly
 $router->post('/periods/{id}/update', [new PeriodController(), 'update'], $agencyOnly);
 
 $router->get('/clients/{id}/dashboard', [new DashboardController(), 'client'], $agencyOnly);
+$router->get('/clients/{id}/dashboard/export', [new ExportController(), 'forClient'], $agencyOnly);
 
 $adminOnly = [
     fn() => AuthMiddleware::handle(),

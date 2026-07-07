@@ -50,6 +50,7 @@ foreach ($rows as $row) {
                         <?php endforeach; ?>
                     </select>
                 </div>
+                <a href="/dashboard/comparativo/export<?= $selectedMonth ? '?month=' . urlencode($selectedMonth) : '' ?>" class="btn-link" style="text-decoration:none;margin-left:auto;">Exportar Excel</a>
             </form>
 
             <div class="kpi-grid" style="grid-template-columns:repeat(4, 1fr);">
