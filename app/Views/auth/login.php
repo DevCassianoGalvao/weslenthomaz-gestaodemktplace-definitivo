@@ -5,10 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Login - Gestão de Marketplaces</title>
     <link rel="stylesheet" href="/assets/css/app.css">
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js"></script>
 </head>
 <body>
     <div class="center-screen">
-        <div class="card">
+        <div class="card" id="login-card">
             <h1>Gestão de Marketplaces</h1>
 
             <?php if (!empty($error)): ?>
@@ -29,5 +30,10 @@
             </form>
         </div>
     </div>
+    <script>
+        if (typeof gsap !== 'undefined') {
+            gsap.from('#login-card', { opacity: 0, y: 16, scale: 0.98, duration: 0.5, ease: 'power2.out' });
+        }
+    </script>
 </body>
 </html>

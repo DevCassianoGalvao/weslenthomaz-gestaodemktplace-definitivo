@@ -415,11 +415,28 @@ table tr:last-child td { border-bottom: none; }
 }
 
 @media (max-width: 900px) {
-  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
-  .chart-grid { grid-template-columns: 1fr; }
+  .kpi-grid { grid-template-columns: repeat(2, 1fr) !important; }
+  .chart-grid { grid-template-columns: 1fr !important; }
+  .form-grid { grid-template-columns: 1fr !important; }
 }
 
 @media (max-width: 520px) {
-  .kpi-grid { grid-template-columns: 1fr; }
+  .kpi-grid { grid-template-columns: 1fr !important; }
   .filter-bar { flex-direction: column; align-items: stretch; }
+  .filter-bar a[style*="margin-left"] { margin-left: 0 !important; }
+}
+
+@media (max-width: 700px) {
+  table { display: block; overflow-x: auto; white-space: nowrap; }
+
+  .topbar { flex-wrap: wrap; gap: 12px; padding: 12px 16px; }
+  .topbar-nav { flex-wrap: wrap; gap: 12px; }
+  .topbar-user { flex-wrap: wrap; }
+
+  .content { padding: 20px 16px; }
+  .content-header { flex-wrap: wrap; gap: 12px; }
+  .dashboard-tabs { flex-wrap: wrap; gap: 12px; }
+
+  .checkbox-list { gap: 8px; }
+  .form-card { padding: 20px; }
 }

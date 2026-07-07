@@ -9,10 +9,15 @@ use App\Core\Format;
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Lançamentos - <?= htmlspecialchars($client['name'], ENT_QUOTES, 'UTF-8') ?></title>
     <link rel="stylesheet" href="/assets/css/app.css">
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js"></script>
 </head>
 <body>
     <?php $active = 'clients'; require __DIR__ . '/../partials/topbar.php'; ?>
     <div class="content">
+        <?php if (($_GET['saved'] ?? '') === '1'): ?>
+            <div class="alert-success" id="saved-banner">Lançamento salvo com sucesso.</div>
+        <?php endif; ?>
+
         <div class="content-header">
             <div>
                 <h1><?= htmlspecialchars($client['name'], ENT_QUOTES, 'UTF-8') ?></h1>
@@ -55,5 +60,9 @@ use App\Core\Format;
             </table>
         <?php endif; ?>
     </div>
+    <script src="/assets/js/animations.js"></script>
+    <?php if (($_GET['saved'] ?? '') === '1'): ?>
+        <script>animateSuccessBanner('#saved-banner', 2500);</script>
+    <?php endif; ?>
 </body>
 </html>

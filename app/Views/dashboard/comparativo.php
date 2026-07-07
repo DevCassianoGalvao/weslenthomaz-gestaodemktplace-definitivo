@@ -32,6 +32,8 @@ foreach ($rows as $row) {
     <title>Comparativo entre clientes - Gestão de Marketplaces</title>
     <link rel="stylesheet" href="/assets/css/app.css">
     <script src="https://cdn.jsdelivr.net/npm/apexcharts@3"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/ScrollTrigger.min.js"></script>
 </head>
 <body>
     <?php $active = 'dashboard'; require __DIR__ . '/../partials/topbar.php'; ?>
@@ -56,15 +58,15 @@ foreach ($rows as $row) {
             <div class="kpi-grid" style="grid-template-columns:repeat(4, 1fr);">
                 <div class="kpi-card">
                     <div class="kpi-label">Faturamento da carteira</div>
-                    <div class="kpi-value"><?= Format::centsToBrl($portfolioValueCents) ?></div>
+                    <div class="kpi-value" data-countup="<?= $portfolioValueCents / 100 ?>" data-format="currency"><?= Format::centsToBrl($portfolioValueCents) ?></div>
                 </div>
                 <div class="kpi-card">
                     <div class="kpi-label">Pedidos no mês</div>
-                    <div class="kpi-value"><?= $portfolioOrders ?></div>
+                    <div class="kpi-value" data-countup="<?= $portfolioOrders ?>" data-format="number"><?= $portfolioOrders ?></div>
                 </div>
                 <div class="kpi-card">
                     <div class="kpi-label">Ticket médio da carteira</div>
-                    <div class="kpi-value"><?= $portfolioTicketCents !== null ? Format::centsToBrl($portfolioTicketCents) : '—' ?></div>
+                    <div class="kpi-value" <?= $portfolioTicketCents !== null ? 'data-countup="' . ($portfolioTicketCents / 100) . '" data-format="currency"' : '' ?>><?= $portfolioTicketCents !== null ? Format::centsToBrl($portfolioTicketCents) : '—' ?></div>
                 </div>
                 <div class="kpi-card">
                     <div class="kpi-label">Clientes com faturamento</div>
@@ -115,6 +117,7 @@ foreach ($rows as $row) {
                 </tbody>
             </table>
 
+            <script src="/assets/js/animations.js"></script>
             <script>
                 new ApexCharts(document.querySelector('#chart-comparativo-clientes'), {
                     chart: { type: 'bar', height: 300, toolbar: { show: false } },
@@ -127,6 +130,7 @@ foreach ($rows as $row) {
                     yaxis: { labels: { formatter: function (v) { return Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); } } },
                     tooltip: { y: { formatter: function (v) { return Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); } } },
                 }).render();
+                animateDashboardEntrance();
             </script>
         <?php endif; ?>
     </div>

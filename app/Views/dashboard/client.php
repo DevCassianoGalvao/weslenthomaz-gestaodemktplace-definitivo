@@ -63,6 +63,10 @@ foreach ($periods as $period) {
     $monthGroups[$period['reference_month']][] = $period;
 }
 krsort($monthGroups);
+
+$accentColor = (!empty($client['brand_color']) && preg_match('/^#[0-9a-fA-F]{6}$/', $client['brand_color']))
+    ? $client['brand_color']
+    : '#3b82f6';
 ?>
 <!doctype html>
 <html lang="pt-BR">
@@ -71,7 +75,10 @@ krsort($monthGroups);
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Dashboard - <?= htmlspecialchars($client['name'], ENT_QUOTES, 'UTF-8') ?></title>
     <link rel="stylesheet" href="/assets/css/app.css">
+    <?php require __DIR__ . '/../partials/brand-style.php'; ?>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts@3"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/ScrollTrigger.min.js"></script>
 </head>
 <body>
     <?php $active = 'dashboard'; require __DIR__ . '/../partials/topbar.php'; ?>
@@ -129,7 +136,7 @@ krsort($monthGroups);
             <div class="kpi-grid">
                 <div class="kpi-card">
                     <div class="kpi-label">Faturamento do período</div>
-                    <div class="kpi-value"><?= Format::centsToBrl((int) $kpis['total_value_cents']) ?></div>
+                    <div class="kpi-value" data-countup="<?= (int) $kpis['total_value_cents'] / 100 ?>" data-format="currency"><?= Format::centsToBrl((int) $kpis['total_value_cents']) ?></div>
                 </div>
                 <div class="kpi-card">
                     <div class="kpi-label">Variação vs. mês anterior</div>
@@ -137,7 +144,7 @@ krsort($monthGroups);
                         <div class="kpi-value">—</div>
                         <div class="kpi-sub">sem dado do mês anterior</div>
                     <?php else: ?>
-                        <div class="kpi-value <?= $kpis['variation_pct'] >= 0 ? 'kpi-positive' : 'kpi-negative' ?>">
+                        <div class="kpi-value <?= $kpis['variation_pct'] >= 0 ? 'kpi-positive' : 'kpi-negative' ?>" data-countup="<?= $kpis['variation_pct'] ?>" data-format="percent">
                             <?= $kpis['variation_pct'] >= 0 ? '+' : '' ?><?= htmlspecialchars(number_format($kpis['variation_pct'], 1, ',', '.'), ENT_QUOTES, 'UTF-8') ?>%
                         </div>
                     <?php endif; ?>
@@ -146,7 +153,7 @@ krsort($monthGroups);
                     <div class="kpi-label">Melhor desempenho</div>
                     <?php if ($kpis['best_marketplace']): ?>
                         <div class="kpi-value"><?= htmlspecialchars($kpis['best_marketplace']['name'], ENT_QUOTES, 'UTF-8') ?></div>
-                        <div class="kpi-sub"><?= Format::centsToBrl((int) $kpis['best_marketplace']['total_value_cents']) ?></div>
+                        <div class="kpi-sub" data-countup="<?= (int) $kpis['best_marketplace']['total_value_cents'] / 100 ?>" data-format="currency"><?= Format::centsToBrl((int) $kpis['best_marketplace']['total_value_cents']) ?></div>
                     <?php else: ?>
                         <div class="kpi-value">—</div>
                     <?php endif; ?>
@@ -155,14 +162,14 @@ krsort($monthGroups);
                     <div class="kpi-label">Maior queda</div>
                     <?php if ($kpis['worst_marketplace']): ?>
                         <div class="kpi-value"><?= htmlspecialchars($kpis['worst_marketplace']['name'], ENT_QUOTES, 'UTF-8') ?></div>
-                        <div class="kpi-sub kpi-negative"><?= Format::centsToBrl((int) $kpis['worst_marketplace']['total_value_cents']) ?></div>
+                        <div class="kpi-sub kpi-negative" data-countup="<?= (int) $kpis['worst_marketplace']['total_value_cents'] / 100 ?>" data-format="currency"><?= Format::centsToBrl((int) $kpis['worst_marketplace']['total_value_cents']) ?></div>
                     <?php else: ?>
                         <div class="kpi-value">—</div>
                     <?php endif; ?>
                 </div>
                 <div class="kpi-card">
                     <div class="kpi-label">Ticket médio geral</div>
-                    <div class="kpi-value"><?= $kpis['ticket_medio_cents'] !== null ? Format::centsToBrl((int) $kpis['ticket_medio_cents']) : '—' ?></div>
+                    <div class="kpi-value" <?= $kpis['ticket_medio_cents'] !== null ? 'data-countup="' . ((int) $kpis['ticket_medio_cents'] / 100) . '" data-format="currency"' : '' ?>><?= $kpis['ticket_medio_cents'] !== null ? Format::centsToBrl((int) $kpis['ticket_medio_cents']) : '—' ?></div>
                 </div>
             </div>
 
@@ -247,12 +254,15 @@ krsort($monthGroups);
             <?php endforeach; ?>
 
             <script src="/assets/js/dashboard-charts.js"></script>
+            <script src="/assets/js/animations.js"></script>
             <script>
                 renderDashboardCharts(
                     { categories: <?= json_encode($evolutionCategories) ?>, values: <?= json_encode($evolutionValues) ?> },
                     { labels: <?= json_encode($distributionLabels) ?>, values: <?= json_encode($distributionValues) ?>, colors: <?= json_encode($distributionColors) ?> },
-                    { categories: <?= json_encode($evolutionCategories) ?>, series: <?= json_encode($comparativoSeries) ?>, colors: <?= json_encode($comparativoColors) ?> }
+                    { categories: <?= json_encode($evolutionCategories) ?>, series: <?= json_encode($comparativoSeries) ?>, colors: <?= json_encode($comparativoColors) ?> },
+                    <?= json_encode($accentColor) ?>
                 );
+                animateDashboardEntrance();
             </script>
         <?php endif; ?>
     </div>

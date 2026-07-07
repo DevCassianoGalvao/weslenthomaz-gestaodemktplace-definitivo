@@ -2,7 +2,9 @@ function formatBRL(value) {
     return Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
-function renderDashboardCharts(evolution, distribution, comparativo) {
+function renderDashboardCharts(evolution, distribution, comparativo, accentColor) {
+    accentColor = accentColor || '#3b82f6';
+
     if (evolution.categories.length && document.getElementById('chart-evolution')) {
         new ApexCharts(document.querySelector('#chart-evolution'), {
             chart: { type: 'area', height: 280, toolbar: { show: false } },
@@ -10,7 +12,7 @@ function renderDashboardCharts(evolution, distribution, comparativo) {
             xaxis: { categories: evolution.categories },
             dataLabels: { enabled: false },
             stroke: { curve: 'smooth', width: 2 },
-            colors: ['#3b82f6'],
+            colors: [accentColor],
             yaxis: { labels: { formatter: function (v) { return formatBRL(v); } } },
             tooltip: { y: { formatter: function (v) { return formatBRL(v); } } },
         }).render();
