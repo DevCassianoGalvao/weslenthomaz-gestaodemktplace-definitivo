@@ -86,7 +86,7 @@ class PeriodController
             (int) Auth::id()
         );
 
-        Entry::saveBatch($periodId, $rows);
+        Entry::saveBatch($periodId, (int) $clientId, $rows, (int) Auth::id());
 
         header('Location: /clients/' . (int) $clientId . '/periods');
         exit;
@@ -148,7 +148,7 @@ class PeriodController
         }
 
         Period::update((int) $id, $data['label'], $data['start_date'], $data['end_date'], $data['reference_month']);
-        Entry::saveBatch((int) $id, $rows);
+        Entry::saveBatch((int) $id, (int) $client['id'], $rows, (int) Auth::id());
 
         header('Location: /clients/' . (int) $client['id'] . '/periods');
         exit;

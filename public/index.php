@@ -22,6 +22,7 @@ session_start([
 
 use App\Controllers\AuthController;
 use App\Controllers\ClientController;
+use App\Controllers\HistoryController;
 use App\Controllers\HomeController;
 use App\Controllers\MarketplaceController;
 use App\Controllers\PeriodController;
@@ -63,5 +64,15 @@ $router->get('/clients/{clientId}/periods/new', [new PeriodController(), 'create
 $router->post('/clients/{clientId}/periods', [new PeriodController(), 'store'], $agencyOnly);
 $router->get('/periods/{id}/edit', [new PeriodController(), 'edit'], $agencyOnly);
 $router->post('/periods/{id}/update', [new PeriodController(), 'update'], $agencyOnly);
+
+$adminOnly = [
+    fn() => AuthMiddleware::handle(),
+    RoleMiddleware::only(['admin']),
+];
+
+$router->get('/history', [new HistoryController(), 'index'], $adminOnly);
+$router->get('/history/export', [new HistoryController(), 'exportCsv'], $adminOnly);
+$router->post('/history/clear-client', [new HistoryController(), 'clearClient'], $adminOnly);
+$router->post('/history/clear-all', [new HistoryController(), 'clearAll'], $adminOnly);
 
 $router->dispatch($_SERVER['REQUEST_METHOD'], $_SERVER['REQUEST_URI']);
