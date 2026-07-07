@@ -1,0 +1,6 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=$HOME/public_html/weslenmarketplaces/
+    - /bin/cp -R * "$DEPLOYPATH"
+    - /bin/cp -R .htaccess "$DEPLOYPATH"
