@@ -658,6 +658,41 @@ table tfoot td {
   font-weight: 600;
 }
 
+/* ---------- ApexCharts (override do tema padrão da lib p/ combinar com o dark navy/blue) ---------- */
+
+.apexcharts-tooltip.apexcharts-theme-dark {
+  background: var(--bg-surface) !important;
+  border: 1px solid var(--border-strong) !important;
+  box-shadow: var(--shadow-popover) !important;
+  border-radius: 10px !important;
+  overflow: hidden;
+}
+
+.apexcharts-tooltip-title {
+  background: var(--bg-surface-hover) !important;
+  border-bottom: 1px solid var(--border-subtle) !important;
+  font-family: var(--font-sans) !important;
+}
+
+.apexcharts-tooltip-series-group {
+  background: transparent !important;
+}
+
+.apexcharts-xaxistooltip,
+.apexcharts-yaxistooltip {
+  background: var(--bg-surface) !important;
+  border-color: var(--border-subtle) !important;
+  color: var(--text-primary) !important;
+}
+
+.apexcharts-legend-text {
+  color: var(--text-muted) !important;
+  font-family: var(--font-sans) !important;
+}
+
+.apexcharts-menu-icon,
+.apexcharts-toolbar { display: none !important; }
+
 /* ---------- Responsivo ---------- */
 
 @media (max-width: 900px) {

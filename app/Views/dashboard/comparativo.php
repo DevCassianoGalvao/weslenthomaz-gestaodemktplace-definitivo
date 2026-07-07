@@ -134,7 +134,7 @@ foreach ($rows as $row) {
                             legend: { show: false },
                             dataLabels: { enabled: false },
                             yaxis: { labels: { style: { colors: '#8b93a7' }, formatter: function (v) { return Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); } } },
-                            tooltip: { theme: 'dark', y: { formatter: function (v) { return Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); } } },
+                            tooltip: { theme: 'dark', fillSeriesColor: false, y: { formatter: function (v) { return Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); } } },
                         }).render();
                         animateDashboardEntrance();
                     </script>

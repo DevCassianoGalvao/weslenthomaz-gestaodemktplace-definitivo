@@ -31,19 +31,50 @@ function renderDashboardCharts(evolution, distribution, comparativo, accentColor
                 gradient: { shadeIntensity: 1, opacityFrom: 0.4, opacityTo: 0, stops: [0, 90, 100] },
             },
             yaxis: { labels: { style: { colors: '#8b93a7' }, formatter: function (v) { return formatBRL(v); } } },
-            tooltip: { theme: 'dark', y: { formatter: function (v) { return formatBRL(v); } } },
+            tooltip: { theme: 'dark', fillSeriesColor: false, y: { formatter: function (v) { return formatBRL(v); } } },
         }).render();
     }
 
     if (distribution.labels.length && document.getElementById('chart-distribution')) {
+        var distributionTotal = distribution.values.reduce(function (a, b) { return a + b; }, 0);
+
         new ApexCharts(document.querySelector('#chart-distribution'), {
             chart: { type: 'donut', height: 280, fontFamily: 'Inter, sans-serif' },
             series: distribution.values,
             labels: distribution.labels,
             colors: distribution.colors,
-            legend: { position: 'bottom', labels: { colors: '#e5e7eb' } },
-            stroke: { colors: ['#10141f'] },
-            tooltip: { theme: 'dark', y: { formatter: function (v) { return formatBRL(v); } } },
+            legend: { position: 'bottom', labels: { colors: '#e5e7eb' }, markers: { radius: 4 } },
+            stroke: { colors: ['#10141f'], width: 2 },
+            dataLabels: {
+                style: { fontSize: '13px', fontWeight: 600 },
+                dropShadow: { enabled: true, top: 1, left: 1, blur: 2, color: '#000', opacity: 0.6 },
+            },
+            plotOptions: {
+                pie: {
+                    donut: {
+                        size: '72%',
+                        labels: {
+                            show: true,
+                            name: { color: '#8b93a7', fontSize: '0.8rem', offsetY: 4 },
+                            value: {
+                                color: '#e5e7eb',
+                                fontSize: '1.3rem',
+                                fontWeight: 700,
+                                offsetY: -4,
+                                formatter: function (v) { return formatBRL(v); },
+                            },
+                            total: {
+                                show: true,
+                                label: 'Total',
+                                color: '#8b93a7',
+                                fontSize: '0.8rem',
+                                formatter: function () { return formatBRL(distributionTotal); },
+                            },
+                        },
+                    },
+                },
+            },
+            tooltip: { theme: 'dark', fillSeriesColor: false, y: { formatter: function (v) { return formatBRL(v); } } },
         }).render();
     }
 
@@ -63,7 +94,7 @@ function renderDashboardCharts(evolution, distribution, comparativo, accentColor
             plotOptions: { bar: { columnWidth: '60%', borderRadius: 4 } },
             legend: { labels: { colors: '#e5e7eb' } },
             yaxis: { labels: { style: { colors: '#8b93a7' }, formatter: function (v) { return formatBRL(v); } } },
-            tooltip: { theme: 'dark', y: { formatter: function (v) { return formatBRL(v); } } },
+            tooltip: { theme: 'dark', fillSeriesColor: false, y: { formatter: function (v) { return formatBRL(v); } } },
         }).render();
     }
 }
