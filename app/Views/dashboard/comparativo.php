@@ -33,6 +33,7 @@ foreach ($rows as $row) {
     <?php require __DIR__ . '/../partials/head-assets.php'; ?>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts@3"></script>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/ScrollTrigger.min.js"></script>
+    <script src="/assets/js/dashboard-charts.js"></script>
 </head>
 <body>
     <div class="app-shell">
@@ -129,7 +130,7 @@ foreach ($rows as $row) {
                                 labels: { style: { colors: '#8b93a7' } },
                             },
                             grid: { borderColor: 'rgba(255, 255, 255, 0.06)', strokeDashArray: 3 },
-                            colors: <?= json_encode($chartColors) ?>,
+                            colors: <?= json_encode($chartColors) ?>.map(harmonizeChartColor),
                             plotOptions: { bar: { distributed: true, columnWidth: '50%', borderRadius: 4 } },
                             legend: { show: false },
                             dataLabels: { enabled: false },

@@ -6,6 +6,78 @@ function chartGridColor() {
     return 'rgba(255, 255, 255, 0.06)';
 }
 
+function hexToHsl(hex) {
+    hex = hex.replace('#', '');
+    if (hex.length === 3) {
+        hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+    }
+    var r = parseInt(hex.substr(0, 2), 16) / 255;
+    var g = parseInt(hex.substr(2, 2), 16) / 255;
+    var b = parseInt(hex.substr(4, 2), 16) / 255;
+    var max = Math.max(r, g, b), min = Math.min(r, g, b);
+    var h, s, l = (max + min) / 2;
+
+    if (max === min) {
+        h = s = 0;
+    } else {
+        var d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch (max) {
+            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+            case g: h = (b - r) / d + 2; break;
+            default: h = (r - g) / d + 4;
+        }
+        h /= 6;
+    }
+    return [h * 360, s * 100, l * 100];
+}
+
+function hslToHex(h, s, l) {
+    h /= 360; s /= 100; l /= 100;
+    var r, g, b;
+
+    if (s === 0) {
+        r = g = b = l;
+    } else {
+        var hue2rgb = function (p, q, t) {
+            if (t < 0) t += 1;
+            if (t > 1) t -= 1;
+            if (t < 1 / 6) return p + (q - p) * 6 * t;
+            if (t < 1 / 2) return q;
+            if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+            return p;
+        };
+        var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+        var p = 2 * l - q;
+        r = hue2rgb(p, q, h + 1 / 3);
+        g = hue2rgb(p, q, h);
+        b = hue2rgb(p, q, h - 1 / 3);
+    }
+
+    var toHex = function (x) {
+        var v = Math.round(x * 255).toString(16);
+        return v.length === 1 ? '0' + v : v;
+    };
+    return '#' + toHex(r) + toHex(g) + toHex(b);
+}
+
+/**
+ * Normaliza uma cor de marca (marketplace/cliente) pra um tom de saturação e
+ * luminosidade consistentes — evita que cores de marca muito vivas/neon
+ * (ex: amarelo puro) briguem entre si e com o tema dark navy/blue quando
+ * usadas lado a lado num gráfico (donut, barras). Mantém o matiz original,
+ * então a cor continua reconhecível, só entra "no tom" do resto do produto.
+ */
+function harmonizeChartColor(hex) {
+    if (!hex || hex[0] !== '#') {
+        return '#4f7fff';
+    }
+    var hsl = hexToHsl(hex);
+    var s = Math.min(Math.max(hsl[1], 55), 68);
+    var l = Math.min(Math.max(hsl[2], 50), 60);
+    return hslToHex(hsl[0], s, l);
+}
+
 function renderDashboardCharts(evolution, distribution, comparativo, accentColor) {
     if (!accentColor) {
         var computed = getComputedStyle(document.documentElement).getPropertyValue('--accent-primary');
@@ -42,7 +114,7 @@ function renderDashboardCharts(evolution, distribution, comparativo, accentColor
             chart: { type: 'donut', height: 280, fontFamily: 'Inter, sans-serif' },
             series: distribution.values,
             labels: distribution.labels,
-            colors: distribution.colors,
+            colors: distribution.colors.map(harmonizeChartColor),
             legend: { position: 'bottom', labels: { colors: '#e5e7eb' }, markers: { radius: 4 } },
             stroke: { colors: ['#10141f'], width: 2 },
             dataLabels: {
@@ -52,7 +124,7 @@ function renderDashboardCharts(evolution, distribution, comparativo, accentColor
             plotOptions: {
                 pie: {
                     donut: {
-                        size: '72%',
+                        size: '68%',
                         labels: {
                             show: true,
                             name: { color: '#8b93a7', fontSize: '0.8rem', offsetY: 4 },
@@ -89,7 +161,7 @@ function renderDashboardCharts(evolution, distribution, comparativo, accentColor
                 labels: { style: { colors: '#8b93a7' } },
             },
             grid: { borderColor: chartGridColor(), strokeDashArray: 3 },
-            colors: comparativo.colors,
+            colors: comparativo.colors.map(harmonizeChartColor),
             dataLabels: { enabled: false },
             plotOptions: { bar: { columnWidth: '60%', borderRadius: 4 } },
             legend: { labels: { colors: '#e5e7eb' } },
