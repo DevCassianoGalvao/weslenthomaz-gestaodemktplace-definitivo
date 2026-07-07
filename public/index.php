@@ -24,6 +24,7 @@ use App\Controllers\AuthController;
 use App\Controllers\ClientController;
 use App\Controllers\HomeController;
 use App\Controllers\MarketplaceController;
+use App\Controllers\PeriodController;
 use App\Core\Router;
 use App\Middleware\AuthMiddleware;
 use App\Middleware\RoleMiddleware;
@@ -56,5 +57,11 @@ $router->post('/clients/{id}/update', [new ClientController(), 'update'], $agenc
 $router->get('/marketplaces', [new MarketplaceController(), 'index'], $agencyOnly);
 $router->post('/marketplaces', [new MarketplaceController(), 'store'], $agencyOnly);
 $router->post('/marketplaces/{id}/toggle', [new MarketplaceController(), 'toggle'], $agencyOnly);
+
+$router->get('/clients/{clientId}/periods', [new PeriodController(), 'index'], $agencyOnly);
+$router->get('/clients/{clientId}/periods/new', [new PeriodController(), 'create'], $agencyOnly);
+$router->post('/clients/{clientId}/periods', [new PeriodController(), 'store'], $agencyOnly);
+$router->get('/periods/{id}/edit', [new PeriodController(), 'edit'], $agencyOnly);
+$router->post('/periods/{id}/update', [new PeriodController(), 'update'], $agencyOnly);
 
 $router->dispatch($_SERVER['REQUEST_METHOD'], $_SERVER['REQUEST_URI']);

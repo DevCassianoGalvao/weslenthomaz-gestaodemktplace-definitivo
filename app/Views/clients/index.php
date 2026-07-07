@@ -39,7 +39,11 @@
                             <td><?= (int) $client['marketplace_count'] ?></td>
                             <td><span class="badge badge-<?= htmlspecialchars($client['status'], ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($client['status'], ENT_QUOTES, 'UTF-8') ?></span></td>
                             <td><?= htmlspecialchars(date('d/m/Y', strtotime($client['created_at'])), ENT_QUOTES, 'UTF-8') ?></td>
-                            <td><a href="/clients/<?= (int) $client['id'] ?>/edit">Editar</a></td>
+                            <td>
+                                <a href="/clients/<?= (int) $client['id'] ?>/periods">Lançamentos</a>
+                                &nbsp;·&nbsp;
+                                <a href="/clients/<?= (int) $client['id'] ?>/edit">Editar</a>
+                            </td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>

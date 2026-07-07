@@ -81,6 +81,21 @@ class Client
         return array_map('intval', $stmt->fetchAll(\PDO::FETCH_COLUMN));
     }
 
+    /** Marketplaces vinculados a este cliente (objetos completos, usados na matriz de lançamento). */
+    public static function marketplaces(int $clientId): array
+    {
+        $stmt = Database::connection()->prepare(
+            'SELECT m.id, m.name, m.slug, m.color
+             FROM marketplaces m
+             INNER JOIN client_marketplaces cm ON cm.marketplace_id = m.id
+             WHERE cm.client_id = :client_id
+             ORDER BY m.name'
+        );
+        $stmt->execute(['client_id' => $clientId]);
+
+        return $stmt->fetchAll();
+    }
+
     /** @param int[] $marketplaceIds */
     public static function syncMarketplaces(int $clientId, array $marketplaceIds): void
     {
