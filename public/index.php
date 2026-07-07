@@ -18,9 +18,18 @@ spl_autoload_register(function (string $class) {
     }
 });
 
+require __DIR__ . '/../app/Core/helpers.php';
+
+$config = require __DIR__ . '/../config/config.php';
+$basePath = rtrim($config['BASE_PATH'] ?? '', '/');
+
+// Cookie de sessão escopado ao BASE_PATH quando o app roda numa subpasta do
+// domínio (ex: /weslenmarketplaces) — evita que a sessão vaze pra outros
+// apps hospedados no mesmo domínio.
 session_start([
     'cookie_httponly' => true,
     'cookie_samesite' => 'Lax',
+    'cookie_path' => $basePath !== '' ? $basePath . '/' : '/',
 ]);
 
 use App\Controllers\AuthController;
@@ -93,4 +102,14 @@ $router->get('/history/export', [new HistoryController(), 'exportCsv'], $adminOn
 $router->post('/history/clear-client', [new HistoryController(), 'clearClient'], $adminOnly);
 $router->post('/history/clear-all', [new HistoryController(), 'clearAll'], $adminOnly);
 
-$router->dispatch($_SERVER['REQUEST_METHOD'], $_SERVER['REQUEST_URI']);
+// Remove o BASE_PATH do URI antes de rotear — as rotas acima são declaradas
+// sempre "relativas" (ex: '/dashboard'), nunca com o prefixo da subpasta.
+$requestUri = $_SERVER['REQUEST_URI'];
+if ($basePath !== '' && str_starts_with($requestUri, $basePath)) {
+    $requestUri = substr($requestUri, strlen($basePath));
+    if ($requestUri === '' || $requestUri[0] !== '/') {
+        $requestUri = '/' . ltrim($requestUri, '/');
+    }
+}
+
+$router->dispatch($_SERVER['REQUEST_METHOD'], $requestUri);

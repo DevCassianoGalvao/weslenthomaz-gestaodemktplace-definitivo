@@ -136,7 +136,7 @@ class ClientController
         Client::update($clientId, $data['name'], $data['slug'], $data['logo_url'], $data['brand_color'], $status);
         Client::syncMarketplaces($clientId, array_map('intval', $_POST['marketplaces'] ?? []));
 
-        header('Location: /clients');
+        header('Location: ' . url('/clients'));
         exit;
     }
 

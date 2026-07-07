@@ -9,7 +9,7 @@
 use App\Core\Csrf;
 use App\Core\Format;
 
-$exportUrl = '/history/export' . (empty($filters) ? '' : '?' . http_build_query($filters));
+$exportUrl = url('/history/export' . (empty($filters) ? '' : '?' . http_build_query($filters)));
 ?>
 <!doctype html>
 <html lang="pt-BR">
@@ -36,7 +36,7 @@ $exportUrl = '/history/export' . (empty($filters) ? '' : '?' . http_build_query(
                     <div class="alert-error"><?= htmlspecialchars($clearError, ENT_QUOTES, 'UTF-8') ?></div>
                 <?php endif; ?>
 
-                <form method="get" action="/history" class="form-card" style="margin-bottom:24px;max-width:none;">
+                <form method="get" action="<?= url('/history') ?>" class="form-card" style="margin-bottom:24px;max-width:none;">
                     <div class="form-grid" style="grid-template-columns:repeat(5, 1fr);gap:12px;">
                         <div class="field">
                             <label for="client_id">Cliente</label>
@@ -75,7 +75,7 @@ $exportUrl = '/history/export' . (empty($filters) ? '' : '?' . http_build_query(
                     </div>
                     <div class="form-actions">
                         <button type="submit" class="btn" style="width:auto;">Filtrar</button>
-                        <a href="/history" class="btn-secondary" style="text-decoration:none;display:inline-flex;align-items:center;">Limpar filtros</a>
+                        <a href="<?= url('/history') ?>" class="btn-secondary" style="text-decoration:none;display:inline-flex;align-items:center;">Limpar filtros</a>
                         <a href="<?= htmlspecialchars($exportUrl, ENT_QUOTES, 'UTF-8') ?>" class="btn-secondary" style="text-decoration:none;display:inline-flex;align-items:center;">Exportar CSV</a>
                     </div>
                 </form>
@@ -127,7 +127,7 @@ $exportUrl = '/history/export' . (empty($filters) ? '' : '?' . http_build_query(
                 <p class="text-muted">A limpeza remove apenas os registros de auditoria — os lançamentos (entries) não são afetados. Exporte o CSV acima antes de confirmar.</p>
 
                 <div class="form-grid" style="grid-template-columns:1fr 1fr;gap:24px;">
-                    <form class="form-card" method="post" action="/history/clear-client" onsubmit="return confirm('Confirma a limpeza do histórico deste cliente? Essa ação não pode ser desfeita.');">
+                    <form class="form-card" method="post" action="<?= url('/history/clear-client') ?>" onsubmit="return confirm('Confirma a limpeza do histórico deste cliente? Essa ação não pode ser desfeita.');">
                         <?= Csrf::field() ?>
                         <div class="section-title" style="margin-top:0;">Limpar de um cliente específico</div>
                         <div class="field">
@@ -146,7 +146,7 @@ $exportUrl = '/history/export' . (empty($filters) ? '' : '?' . http_build_query(
                         <button type="submit" class="btn" style="background:var(--danger);">Limpar histórico deste cliente</button>
                     </form>
 
-                    <form class="form-card" method="post" action="/history/clear-all" onsubmit="return confirm('Confirma a limpeza de TODO o histórico do sistema? Essa ação não pode ser desfeita.');">
+                    <form class="form-card" method="post" action="<?= url('/history/clear-all') ?>" onsubmit="return confirm('Confirma a limpeza de TODO o histórico do sistema? Essa ação não pode ser desfeita.');">
                         <?= Csrf::field() ?>
                         <div class="section-title" style="margin-top:0;">Limpar histórico geral</div>
                         <p class="text-muted">Remove o histórico de todos os clientes.</p>

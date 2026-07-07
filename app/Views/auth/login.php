@@ -15,7 +15,7 @@
                 <div class="alert-error"><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></div>
             <?php endif; ?>
 
-            <form method="post" action="/login">
+            <form method="post" action="<?= url('/login') ?>">
                 <?= \App\Core\Csrf::field() ?>
                 <div class="field">
                     <label for="email">E-mail</label>

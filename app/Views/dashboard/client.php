@@ -17,7 +17,7 @@ use App\Core\Format;
 
 $isInternal = $isInternal ?? false;
 $hasAnyData = !empty($referenceMonths);
-$dashboardUrl = $isInternal ? '/clients/' . (int) $client['id'] . '/dashboard' : '/dashboard';
+$dashboardUrl = $isInternal ? url('/clients/' . (int) $client['id'] . '/dashboard') : url('/dashboard');
 $currentFilters = array_filter(['month' => $selectedMonth, 'from' => $from, 'to' => $to]);
 $exportUrl = $dashboardUrl . '/export' . (empty($currentFilters) ? '' : '?' . http_build_query($currentFilters));
 
@@ -86,13 +86,13 @@ $accentColor = (!empty($client['brand_color']) && preg_match('/^#[0-9a-fA-F]{6}$
             <div class="content">
                 <?php if ($isInternal): ?>
                     <div class="dashboard-tabs">
-                        <a href="/clients/<?= (int) $client['id'] ?>/dashboard" class="nav-active">Visão do cliente</a>
-                        <a href="/dashboard">Comparativo entre clientes</a>
+                        <a href="<?= url('/clients/' . (int) $client['id'] . '/dashboard') ?>" class="nav-active">Visão do cliente</a>
+                        <a href="<?= url('/dashboard') ?>">Comparativo entre clientes</a>
                     </div>
                     <div class="content-header">
                         <h1><?= htmlspecialchars($client['name'], ENT_QUOTES, 'UTF-8') ?></h1>
                         <form method="get" action="">
-                            <select name="client_id" onchange="fadeNavigate('/clients/' + this.value + '/dashboard')">
+                            <select name="client_id" onchange="fadeNavigate('<?= url('/clients') ?>/' + this.value + '/dashboard')">
                                 <?php foreach ($allClients as $c): ?>
                                     <option value="<?= (int) $c['id'] ?>" <?= (int) $c['id'] === (int) $client['id'] ? 'selected' : '' ?>>
                                         <?= htmlspecialchars($c['name'], ENT_QUOTES, 'UTF-8') ?>
@@ -254,7 +254,7 @@ $accentColor = (!empty($client['brand_color']) && preg_match('/^#[0-9a-fA-F]{6}$
                         </details>
                     <?php endforeach; ?>
 
-                    <script src="/assets/js/dashboard-charts.js"></script>
+                    <script src="<?= url('/assets/js/dashboard-charts.js') ?>"></script>
                     <script>
                         renderDashboardCharts(
                             { categories: <?= json_encode($evolutionCategories) ?>, values: <?= json_encode($evolutionValues) ?> },

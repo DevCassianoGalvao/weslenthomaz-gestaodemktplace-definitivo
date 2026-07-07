@@ -36,7 +36,7 @@
                     <p class="text-muted">Repasse a senha ao cliente pelo canal que preferir. Ele deve trocá-la no primeiro login.</p>
 
                     <div class="form-actions">
-                        <a href="/clients" class="btn-link">Voltar para a lista de clientes</a>
+                        <a href="<?= url('/clients') ?>" class="btn-link">Voltar para a lista de clientes</a>
                     </div>
                 </div>
             </div>

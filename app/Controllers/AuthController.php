@@ -12,7 +12,7 @@ class AuthController
     public function showLogin(): void
     {
         if (Auth::check()) {
-            header('Location: /');
+            header('Location: ' . url('/'));
             exit;
         }
 
@@ -37,7 +37,7 @@ class AuthController
         }
 
         Auth::login($user);
-        header('Location: /');
+        header('Location: ' . url('/'));
         exit;
     }
 
@@ -46,7 +46,7 @@ class AuthController
         if (Csrf::verify($_POST['csrf_token'] ?? null)) {
             Auth::logout();
         }
-        header('Location: /login');
+        header('Location: ' . url('/login'));
         exit;
     }
 }

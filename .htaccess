@@ -1,5 +1,17 @@
-# Salvaguarda caso o document root aponte para a raiz do projeto em vez de /public.
-# O ideal em produção é configurar o document root do (sub)domínio para /public.
+# Bridge de subpasta: quando o document root do domínio é a raiz do projeto
+# (ex: cassianogalvao.com.br/weslenmarketplaces, sem subdomínio dedicado),
+# este arquivo expõe /public como se fosse a raiz do site — sem "/public/"
+# aparecer na URL — e bloqueia acesso direto a app/config/database/vendor.
+#
+# Se o document root já aponta direto pra /public (subdomínio dedicado),
+# esta pasta fica fora da árvore do docroot e o Apache nunca lê este arquivo.
+
 RewriteEngine On
-RewriteCond %{REQUEST_URI} !^/public/
-RewriteRule ^(app|config|database)/ - [F,L]
+
+# Nunca expõe pastas/arquivos sensíveis, mesmo com URL direta
+RewriteRule ^(app|config|database|vendor)(/|$) - [F,L]
+RewriteRule ^composer\.(json|lock)$ - [F,L]
+RewriteRule ^\.env$ - [F,L]
+
+# Tudo mais é servido a partir de /public (roteamento interno, sem redirect visível)
+RewriteRule ^(.*)$ public/$1 [L]

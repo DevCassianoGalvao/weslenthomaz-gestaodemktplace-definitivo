@@ -10,6 +10,9 @@ $defaults = [
     'DB_CHARSET' => 'utf8mb4',
     'APP_URL' => 'http://localhost:8000',
     'APP_ENV' => 'local',
+    // Prefixo de URL quando o app não vive na raiz do domínio (ex: '/weslenmarketplaces').
+    // Vazio = raiz do domínio/subdomínio (padrão local e de subdomínio dedicado).
+    'BASE_PATH' => '',
     'ADMIN_EMAIL' => null,
     'ADMIN_PASSWORD' => null,
 ];

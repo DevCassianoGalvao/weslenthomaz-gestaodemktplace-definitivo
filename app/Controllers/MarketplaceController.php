@@ -54,7 +54,7 @@ class MarketplaceController
 
         Marketplace::create($name, $slug, $color ?: null);
 
-        header('Location: /marketplaces');
+        header('Location: ' . url('/marketplaces'));
         exit;
     }
 
@@ -68,7 +68,7 @@ class MarketplaceController
 
         Marketplace::toggleActive((int) $id);
 
-        header('Location: /marketplaces');
+        header('Location: ' . url('/marketplaces'));
         exit;
     }
 }

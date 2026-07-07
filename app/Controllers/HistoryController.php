@@ -80,7 +80,7 @@ class HistoryController
 
         EntryHistory::clearForClient($clientId);
 
-        header('Location: /history?cleared=client');
+        header('Location: ' . url('/history?cleared=client'));
         exit;
     }
 
@@ -108,7 +108,7 @@ class HistoryController
 
         EntryHistory::clearAll();
 
-        header('Location: /history?cleared=all');
+        header('Location: ' . url('/history?cleared=all'));
         exit;
     }
 

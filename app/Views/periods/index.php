@@ -28,7 +28,7 @@ use App\Core\Icon;
                         <h1><?= htmlspecialchars($client['name'], ENT_QUOTES, 'UTF-8') ?></h1>
                         <p class="text-muted" style="margin-top:-12px;">Lançamentos por período</p>
                     </div>
-                    <a href="/clients/<?= (int) $client['id'] ?>/periods/new" class="btn-link">+ Novo período</a>
+                    <a href="<?= url('/clients/' . (int) $client['id'] . '/periods/new') ?>" class="btn-link">+ Novo período</a>
                 </div>
 
                 <?php if (empty($periods)): ?>
@@ -58,7 +58,7 @@ use App\Core\Icon;
                                     <td><?= htmlspecialchars($period['reference_month'], ENT_QUOTES, 'UTF-8') ?></td>
                                     <td><?= Format::centsToBrl((int) $period['total_value_cents']) ?></td>
                                     <td><?= (int) $period['total_orders'] ?></td>
-                                    <td><a href="/periods/<?= (int) $period['id'] ?>/edit">Editar</a></td>
+                                    <td><a href="<?= url('/periods/' . (int) $period['id'] . '/edit') ?>">Editar</a></td>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>

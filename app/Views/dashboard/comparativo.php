@@ -33,7 +33,7 @@ foreach ($rows as $row) {
     <?php require __DIR__ . '/../partials/head-assets.php'; ?>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts@3"></script>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/ScrollTrigger.min.js"></script>
-    <script src="/assets/js/dashboard-charts.js"></script>
+    <script src="<?= url('/assets/js/dashboard-charts.js') ?>"></script>
 </head>
 <body>
     <div class="app-shell">
@@ -45,7 +45,7 @@ foreach ($rows as $row) {
                 <?php if (!$hasAnyData): ?>
                     <div class="empty-state">Nenhum lançamento registrado ainda em nenhum cliente.</div>
                 <?php else: ?>
-                    <form method="get" action="/dashboard" class="filter-bar">
+                    <form method="get" action="<?= url('/dashboard') ?>" class="filter-bar">
                         <div class="field">
                             <label for="month">Competência</label>
                             <select id="month" name="month" onchange="fadeSubmit(this.form)">
@@ -54,7 +54,7 @@ foreach ($rows as $row) {
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                        <a href="/dashboard/comparativo/export<?= $selectedMonth ? '?month=' . urlencode($selectedMonth) : '' ?>" class="btn-link" style="text-decoration:none;margin-left:auto;">Exportar Excel</a>
+                        <a href="<?= url('/dashboard/comparativo/export' . ($selectedMonth ? '?month=' . urlencode($selectedMonth) : '')) ?>" class="btn-link" style="text-decoration:none;margin-left:auto;">Exportar Excel</a>
                     </form>
 
                     <div class="kpi-grid" style="grid-template-columns:repeat(4, 1fr);">
@@ -113,7 +113,7 @@ foreach ($rows as $row) {
                                     </td>
                                     <td><?= $row['total_orders'] ?></td>
                                     <td><?= $row['ticket_medio_cents'] !== null ? Format::centsToBrl($row['ticket_medio_cents']) : '—' ?></td>
-                                    <td><a href="/clients/<?= (int) $row['client_id'] ?>/dashboard">Ver dashboard</a></td>
+                                    <td><a href="<?= url('/clients/' . (int) $row['client_id'] . '/dashboard') ?>">Ver dashboard</a></td>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>

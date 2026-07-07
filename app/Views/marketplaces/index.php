@@ -42,7 +42,7 @@ $val = fn(string $key, string $default = '') => htmlspecialchars($old[$key] ?? $
                                     </span>
                                 </td>
                                 <td>
-                                    <form method="post" action="/marketplaces/<?= (int) $marketplace['id'] ?>/toggle">
+                                    <form method="post" action="<?= url('/marketplaces/' . (int) $marketplace['id'] . '/toggle') ?>">
                                         <?= \App\Core\Csrf::field() ?>
                                         <button type="submit" class="btn-secondary"><?= $marketplace['is_active'] ? 'Desativar' : 'Ativar' ?></button>
                                     </form>
@@ -53,7 +53,7 @@ $val = fn(string $key, string $default = '') => htmlspecialchars($old[$key] ?? $
                 </table>
 
                 <div class="section-title">Adicionar novo marketplace</div>
-                <form class="form-card" method="post" action="/marketplaces">
+                <form class="form-card" method="post" action="<?= url('/marketplaces') ?>">
                     <?= \App\Core\Csrf::field() ?>
                     <div class="form-grid">
                         <div class="field">

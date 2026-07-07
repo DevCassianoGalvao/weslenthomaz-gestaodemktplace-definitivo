@@ -16,9 +16,9 @@ class HomeController
     public function index(): void
     {
         if (Auth::isClient()) {
-            header('Location: /dashboard');
+            header('Location: ' . url('/dashboard'));
         } else {
-            header('Location: /clients');
+            header('Location: ' . url('/clients'));
         }
         exit;
     }

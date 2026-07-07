@@ -27,7 +27,7 @@ $val = fn(string $key, string $default = '') => htmlspecialchars($values[$key] ?
             <div class="content">
                 <h1><?= $isEdit ? 'Editar cliente' : 'Novo cliente' ?></h1>
 
-                <form class="form-card" method="post" action="<?= $isEdit ? '/clients/' . (int) $client['id'] . '/update' : '/clients' ?>">
+                <form class="form-card" method="post" action="<?= url($isEdit ? '/clients/' . (int) $client['id'] . '/update' : '/clients') ?>">
                     <?= \App\Core\Csrf::field() ?>
 
                     <div class="form-grid">
@@ -99,7 +99,7 @@ $val = fn(string $key, string $default = '') => htmlspecialchars($values[$key] ?
 
                     <div class="form-actions">
                         <button type="submit" class="btn"><?= $isEdit ? 'Salvar alterações' : 'Criar cliente' ?></button>
-                        <a href="/clients" class="btn-secondary" style="text-decoration:none;display:inline-flex;align-items:center;">Cancelar</a>
+                        <a href="<?= url('/clients') ?>" class="btn-secondary" style="text-decoration:none;display:inline-flex;align-items:center;">Cancelar</a>
                     </div>
                 </form>
             </div>

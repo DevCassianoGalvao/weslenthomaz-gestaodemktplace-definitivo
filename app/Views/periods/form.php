@@ -13,7 +13,7 @@ use App\Core\Csrf;
 $isEdit = $mode === 'edit';
 $values = array_merge($period ?? [], $old ?? []);
 $val = fn(string $key, string $default = '') => htmlspecialchars($values[$key] ?? $default, ENT_QUOTES, 'UTF-8');
-$action = $isEdit ? '/periods/' . (int) $period['id'] . '/update' : '/clients/' . (int) $client['id'] . '/periods';
+$action = url($isEdit ? '/periods/' . (int) $period['id'] . '/update' : '/clients/' . (int) $client['id'] . '/periods');
 ?>
 <!doctype html>
 <html lang="pt-BR">
@@ -35,7 +35,7 @@ $action = $isEdit ? '/periods/' . (int) $period['id'] . '/update' : '/clients/' 
                 <?php if (empty($marketplaces)): ?>
                     <div class="alert-error">
                         Este cliente ainda não tem marketplaces vinculados.
-                        <a href="/clients/<?= (int) $client['id'] ?>/edit" style="color:inherit;text-decoration:underline;">Vincule marketplaces primeiro</a>.
+                        <a href="<?= url('/clients/' . (int) $client['id'] . '/edit') ?>" style="color:inherit;text-decoration:underline;">Vincule marketplaces primeiro</a>.
                     </div>
                 <?php else: ?>
                     <form class="form-card" method="post" action="<?= $action ?>" style="max-width:760px;">
@@ -106,7 +106,7 @@ $action = $isEdit ? '/periods/' . (int) $period['id'] . '/update' : '/clients/' 
 
                         <div class="form-actions">
                             <button type="submit" class="btn"><?= $isEdit ? 'Salvar alterações' : 'Salvar lançamento' ?></button>
-                            <a href="/clients/<?= (int) $client['id'] ?>/periods" class="btn-secondary" style="text-decoration:none;display:inline-flex;align-items:center;">Cancelar</a>
+                            <a href="<?= url('/clients/' . (int) $client['id'] . '/periods') ?>" class="btn-secondary" style="text-decoration:none;display:inline-flex;align-items:center;">Cancelar</a>
                         </div>
                     </form>
                 <?php endif; ?>
@@ -114,6 +114,6 @@ $action = $isEdit ? '/periods/' . (int) $period['id'] . '/update' : '/clients/' 
         </main>
     </div>
 
-    <script src="/assets/js/period-matrix.js"></script>
+    <script src="<?= url('/assets/js/period-matrix.js') ?>"></script>
 </body>
 </html>
