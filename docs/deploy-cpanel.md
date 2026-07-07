@@ -39,8 +39,10 @@ Confira antes de começar (em "Selecionar Versão do PHP" / "MultiPHP Manager"):
    ```
    (o cPanel completa automaticamente com o caminho da sua conta, tipo
    `/home/seuusuario/repositories/weslenmarketplaces`.)
-   **Não** aponte direto pra `public_html/weslenmarketplaces` — o cPanel Git clona um repositório de trabalho completo (incluindo a pasta `.git`) e você não quer isso exposto na web. Vamos "publicar" (deploy) desse repositório pra dentro de `public_html` no passo seguinte.
+   **Não** aponte direto pra `cassianogalvao.com.br/weslenmarketplaces` — o cPanel Git clona um repositório de trabalho completo (incluindo a pasta `.git`) e você não quer isso exposto na web. Vamos "publicar" (deploy) desse repositório pra dentro da pasta do domínio no passo seguinte.
 5. Clique **Create**. O cPanel clona o repo pra essa pasta.
+
+> **Nota sobre o caminho do site**: na sua conta, o domínio `cassianogalvao.com.br` não fica dentro de uma pasta `public_html/` — a pasta `cassianogalvao.com.br` (direto em `/home/xdigcomb/`) já É a raiz do site, confirmado em cPanel → Domains → coluna "Document Root". Por isso o `.cpanel.yml` deste projeto aponta pra `$HOME/cassianogalvao.com.br/weslenmarketplaces/`. Se algum dia você mexer noutra conta cPanel que usa a estrutura tradicional (`public_html/dominio.com/`), é só ajustar essa linha no `.cpanel.yml`.
 
 ### 3.1 Publicar (deploy) do repositório pra dentro de public_html
 
@@ -52,7 +54,7 @@ ele automaticamente assim que detecta o repositório.
 
 Toda vez que você clicar **"Update from Remote"** (puxa do
 GitHub) seguido de **"Deploy HEAD Commit"** na tela do repositório no cPanel,
-os arquivos são copiados pra `public_html/weslenmarketplaces/` automaticamente
+os arquivos são copiados pra `cassianogalvao.com.br/weslenmarketplaces/` automaticamente
 — incluindo o `.htaccess` (que começa com `.` e alguns comandos de cópia
 simples ignoram arquivos ocultos, por isso a linha extra copiando ele
 explicitamente).
@@ -72,14 +74,14 @@ depois — é mais complexo e não é necessário pra colocar o sistema no ar ho
 Se seu cPanel tem **Terminal** (cPanel → Advanced → Terminal):
 
 ```bash
-cd ~/public_html/weslenmarketplaces
+cd ~/cassianogalvao.com.br/weslenmarketplaces
 composer install --no-dev --optimize-autoloader
 ```
 
 Se não tiver Terminal/SSH: baixe o projeto com `composer install` rodado
 **localmente** (na sua máquina, dentro da pasta do projeto) e faça upload da
 pasta `vendor/` inteira via **File Manager** ou FTP pra dentro de
-`public_html/weslenmarketplaces/vendor/`. É mais lento mas funciona igual
+`cassianogalvao.com.br/weslenmarketplaces/vendor/`. É mais lento mas funciona igual
 (a pasta `vendor/` não muda com frequência, só quando você adiciona uma
 biblioteca nova).
 
@@ -92,7 +94,7 @@ cPanel → **Select PHP Version** (ou "MultiPHP Manager") → **Options/Extensio
 
 Esse arquivo **nunca vai pro Git** (fica de fora do repositório de propósito,
 por segurança). Crie ele direto no servidor via **File Manager**, dentro de
-`public_html/weslenmarketplaces/config/config.local.php`:
+`cassianogalvao.com.br/weslenmarketplaces/config/config.local.php`:
 
 ```php
 <?php
@@ -156,10 +158,10 @@ Manager ou Terminal) — eles não devem ficar acessíveis publicamente depois
 de usados:
 
 ```
-public_html/weslenmarketplaces/install.php
-public_html/weslenmarketplaces/database/install.php
-public_html/weslenmarketplaces/seed-demo.php
-public_html/weslenmarketplaces/database/seed_demo.php
+cassianogalvao.com.br/weslenmarketplaces/install.php
+cassianogalvao.com.br/weslenmarketplaces/database/install.php
+cassianogalvao.com.br/weslenmarketplaces/seed-demo.php
+cassianogalvao.com.br/weslenmarketplaces/database/seed_demo.php
 ```
 
 ## 10. Testar
@@ -176,6 +178,6 @@ carregam normalmente (se algo vier sem estilo/quebrado, o suspeito nº 1 é o
 Se sua hospedagem não tiver a opção "Git Version Control" no cPanel, o
 caminho mais simples é: rodar `git clone` (ou baixar o ZIP do GitHub) na sua
 máquina, rodar `composer install` localmente, e subir a pasta inteira
-(exceto `.git/`) via **FTP** pra `public_html/weslenmarketplaces/`. Pra
+(exceto `.git/`) via **FTP** pra `cassianogalvao.com.br/weslenmarketplaces/`. Pra
 atualizar depois, repete o processo ou usa um cliente FTP com sincronização
 (FileZilla tem isso). Menos elegante que o Git, mas funciona igual.
