@@ -1,6 +1,4 @@
 ---
 deployment:
   tasks:
-    - export DEPLOYPATH=$HOME/cassianogalvao.com.br/weslenmarketplaces/
-    - /bin/cp -R * "$DEPLOYPATH"
-    - /bin/cp -R .htaccess "$DEPLOYPATH"
+    - /bin/cp -R * .htaccess "$HOME/cassianogalvao.com.br/weslenmarketplaces/"

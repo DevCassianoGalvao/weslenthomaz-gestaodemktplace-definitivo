@@ -44,7 +44,7 @@ Confira antes de começar (em "Selecionar Versão do PHP" / "MultiPHP Manager"):
 
 > **Nota sobre o caminho do site**: na sua conta, o domínio `cassianogalvao.com.br` não fica dentro de uma pasta `public_html/` — a pasta `cassianogalvao.com.br` (direto em `/home/xdigcomb/`) já É a raiz do site, confirmado em cPanel → Domains → coluna "Document Root". Por isso o `.cpanel.yml` deste projeto aponta pra `$HOME/cassianogalvao.com.br/weslenmarketplaces/`. Se algum dia você mexer noutra conta cPanel que usa a estrutura tradicional (`public_html/dominio.com/`), é só ajustar essa linha no `.cpanel.yml`.
 
-### 3.1 Publicar (deploy) do repositório pra dentro de public_html
+### 3.1 Publicar (deploy) do repositório pra dentro do domínio
 
 O cPanel Git Version Control tem um recurso de "Pull or Deploy" que copia os
 arquivos do repositório clonado pra um destino final, usando um arquivo
@@ -54,10 +54,18 @@ ele automaticamente assim que detecta o repositório.
 
 Toda vez que você clicar **"Update from Remote"** (puxa do
 GitHub) seguido de **"Deploy HEAD Commit"** na tela do repositório no cPanel,
-os arquivos são copiados pra `cassianogalvao.com.br/weslenmarketplaces/` automaticamente
-— incluindo o `.htaccess` (que começa com `.` e alguns comandos de cópia
-simples ignoram arquivos ocultos, por isso a linha extra copiando ele
-explicitamente).
+os arquivos são copiados pra `cassianogalvao.com.br/weslenmarketplaces/` automaticamente.
+
+> **Pegadinha do cPanel**: cada linha da lista `tasks` do `.cpanel.yml` roda
+> num shell **separado** — uma variável criada com `export` numa linha some
+> antes da próxima linha rodar. Por isso o comando final ficou tudo numa
+> linha só (`cp -R * .htaccess "$HOME/.../weslenmarketplaces/"`), sem
+> `export` no meio. Se um dia o deploy não copiar nada silenciosamente,
+> desconfie primeiro disso.
+>
+> Pra ver se o deploy realmente rodou (e o que deu errado, se deu), clique
+> em **"History"** na tela do repositório (aparece do lado do "HEAD Commit")
+> — mostra o log de cada deploy, incluindo erros do `cp`.
 
 **Resumindo o fluxo de atualização depois que estiver tudo configurado:**
 1. Você faz alterações e `git push` normalmente no seu computador.
