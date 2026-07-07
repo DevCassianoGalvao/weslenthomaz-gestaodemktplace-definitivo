@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Login - Gestão de Marketplaces</title>
-    <link rel="stylesheet" href="/assets/css/app.css">
-    <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js"></script>
+    <?php require __DIR__ . '/../partials/head-assets.php'; ?>
 </head>
 <body>
     <div class="center-screen">

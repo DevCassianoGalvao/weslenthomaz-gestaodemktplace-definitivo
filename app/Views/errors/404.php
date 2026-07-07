@@ -1,9 +1,19 @@
 <!doctype html>
 <html lang="pt-BR">
-<head><meta charset="UTF-8"><title>404 - Página não encontrada</title></head>
-<body style="font-family: sans-serif; text-align:center; padding-top: 80px;">
-    <h1>404</h1>
-    <p>Página não encontrada.</p>
-    <a href="/">Voltar</a>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>404 - Página não encontrada</title>
+    <link rel="stylesheet" href="/assets/css/design-tokens.css">
+    <link rel="stylesheet" href="/assets/css/app.css">
+</head>
+<body>
+    <div class="center-screen">
+        <div class="card" style="text-align:center;">
+            <h1 style="font-size:2.5rem;margin-bottom:8px;">404</h1>
+            <p class="text-muted" style="margin-bottom:20px;">Página não encontrada.</p>
+            <a href="/" class="btn" style="text-decoration:none;display:inline-block;">Voltar</a>
+        </div>
+    </div>
 </body>
 </html>

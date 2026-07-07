@@ -1,7 +1,9 @@
 /**
- * Animações GSAP (+ ScrollTrigger) do painel — Fase 8 de polimento (PRD).
+ * Animações GSAP (+ ScrollTrigger) — dark navy/blue design system.
  * Toda função verifica se o GSAP carregou antes de rodar: se o CDN falhar,
  * a página continua funcional e com os valores corretos, só sem animação.
+ * Este arquivo se auto-inicializa (fade de página + indicador da sidebar)
+ * em toda página que o incluir via partials/head-assets.php.
  */
 
 function formatCountValue(value, format) {
@@ -95,3 +97,81 @@ function animateSuccessBanner(selector, autoHideMs) {
         });
     }
 }
+
+/** Fade-out do conteúdo antes de navegar (troca de cliente/filtro) — cai de volta ao entrar na próxima página. */
+function fadeNavigate(url) {
+    if (typeof gsap === 'undefined') {
+        window.location.href = url;
+        return;
+    }
+    gsap.to('.content', {
+        opacity: 0,
+        y: 8,
+        duration: 0.18,
+        ease: 'power1.in',
+        onComplete: function () { window.location.href = url; },
+    });
+}
+
+/** Igual ao fadeNavigate, mas para envio de formulário (ex: filtro de competência). */
+function fadeSubmit(form) {
+    if (typeof gsap === 'undefined') {
+        form.submit();
+        return;
+    }
+    gsap.to('.content', {
+        opacity: 0,
+        y: 8,
+        duration: 0.18,
+        ease: 'power1.in',
+        onComplete: function () { form.submit(); },
+    });
+}
+
+/** Fade de entrada do conteúdo ao carregar qualquer página. */
+function initPageFade() {
+    if (typeof gsap === 'undefined') {
+        return;
+    }
+    gsap.from('.content', { opacity: 0, y: 8, duration: 0.35, ease: 'power2.out' });
+}
+
+/**
+ * Indicador do item ativo da sidebar: desliza suavemente da posição anterior
+ * (lembrada via sessionStorage) até o item ativo atual, a cada navegação real.
+ */
+function initSidebarIndicator() {
+    var nav = document.querySelector('.sidebar-nav');
+    var indicator = document.getElementById('nav-indicator');
+    var active = nav ? nav.querySelector('.nav-item.active') : null;
+
+    if (!nav || !indicator || !active) {
+        return;
+    }
+
+    var navRect = nav.getBoundingClientRect();
+    var activeRect = active.getBoundingClientRect();
+    var targetTop = activeRect.top - navRect.top + nav.scrollTop;
+    var height = activeRect.height;
+    var storeKey = 'sidebarIndicatorTop';
+    var prevTop = sessionStorage.getItem(storeKey);
+
+    indicator.style.height = height + 'px';
+    indicator.style.opacity = '1';
+
+    if (typeof gsap === 'undefined') {
+        indicator.style.top = targetTop + 'px';
+    } else if (prevTop !== null && parseFloat(prevTop) !== targetTop) {
+        gsap.set(indicator, { top: parseFloat(prevTop) });
+        gsap.to(indicator, { top: targetTop, duration: 0.4, ease: 'power2.out' });
+    } else {
+        gsap.set(indicator, { top: targetTop });
+    }
+
+    sessionStorage.setItem(storeKey, String(targetTop));
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    initPageFade();
+    initSidebarIndicator();
+});
