@@ -12,6 +12,7 @@ $isAgency = Auth::isAdmin() || Auth::isOperator();
         <?php if ($isAgency): ?>
             <a href="/clients" class="<?= $active === 'clients' ? 'nav-active' : '' ?>">Clientes</a>
             <a href="/marketplaces" class="<?= $active === 'marketplaces' ? 'nav-active' : '' ?>">Marketplaces</a>
+            <a href="/dashboard" class="<?= $active === 'dashboard' ? 'nav-active' : '' ?>">Dashboard</a>
         <?php endif; ?>
         <?php if (Auth::isAdmin()): ?>
             <a href="/history" class="<?= $active === 'history' ? 'nav-active' : '' ?>">Histórico</a>

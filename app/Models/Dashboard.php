@@ -223,6 +223,101 @@ class Dashboard
         ];
     }
 
+    /**
+     * Monta todos os dados necessários para renderizar a view dashboard/client,
+     * reaproveitado tanto pela visão do cliente final quanto pelo drill-down do admin.
+     */
+    public static function forClient(int $clientId, ?string $month, ?string $from, ?string $to): array
+    {
+        $referenceMonths = self::referenceMonths($clientId);
+
+        if ($month === null || !in_array($month, $referenceMonths, true)) {
+            $month = $referenceMonths[0] ?? null;
+        }
+
+        return [
+            'referenceMonths' => $referenceMonths,
+            'selectedMonth' => $month,
+            'from' => $from,
+            'to' => $to,
+            'kpis' => self::kpis($clientId, $month),
+            'monthlyTotals' => self::monthlyTotals($clientId, $from, $to),
+            'marketplaceTotals' => $month ? self::marketplaceTotalsForMonth($clientId, $month) : [],
+            'marketplaceMatrix' => self::marketplaceMonthlyMatrix($clientId, $from, $to),
+            'periods' => self::periodsWithEntries($clientId, $from, $to),
+        ];
+    }
+
+    /** Meses de competência com dados em qualquer cliente — usado no filtro do comparativo. */
+    public static function allReferenceMonths(): array
+    {
+        $stmt = Database::connection()->query(
+            'SELECT DISTINCT reference_month FROM periods ORDER BY reference_month DESC'
+        );
+
+        return array_map('strval', $stmt->fetchAll(\PDO::FETCH_COLUMN));
+    }
+
+    /**
+     * Faturamento/pedidos/ticket médio/variação de cada cliente da carteira num mês,
+     * para a aba de comparativo do admin. Uma consulta por mês (atual/anterior), não por cliente.
+     */
+    public static function clientComparison(string $month): array
+    {
+        $current = self::totalsByClientForMonth($month);
+        $previous = self::totalsByClientForMonth(self::previousMonth($month));
+
+        $rows = [];
+        foreach (Client::all() as $client) {
+            $clientId = (int) $client['id'];
+            $cur = $current[$clientId] ?? ['value' => 0, 'orders' => 0];
+            $prev = $previous[$clientId] ?? null;
+
+            $variation = ($prev && $prev['value'] > 0)
+                ? round((($cur['value'] - $prev['value']) / $prev['value']) * 100, 1)
+                : null;
+
+            $rows[] = [
+                'client_id' => $clientId,
+                'client_name' => $client['name'],
+                'brand_color' => $client['brand_color'],
+                'total_value_cents' => $cur['value'],
+                'total_orders' => $cur['orders'],
+                'ticket_medio_cents' => $cur['orders'] > 0 ? (int) round($cur['value'] / $cur['orders']) : null,
+                'variation_pct' => $variation,
+            ];
+        }
+
+        usort($rows, fn($a, $b) => $b['total_value_cents'] <=> $a['total_value_cents']);
+
+        return $rows;
+    }
+
+    /** @return array<int, array{value:int, orders:int}> chave = client_id */
+    private static function totalsByClientForMonth(string $month): array
+    {
+        $stmt = Database::connection()->prepare(
+            'SELECT p.client_id,
+                    COALESCE(SUM(e.value_cents), 0) AS total_value_cents,
+                    COALESCE(SUM(e.orders_count), 0) AS total_orders
+             FROM periods p
+             LEFT JOIN entries e ON e.period_id = p.id
+             WHERE p.reference_month = :month
+             GROUP BY p.client_id'
+        );
+        $stmt->execute(['month' => $month]);
+
+        $totals = [];
+        foreach ($stmt->fetchAll() as $row) {
+            $totals[(int) $row['client_id']] = [
+                'value' => (int) $row['total_value_cents'],
+                'orders' => (int) $row['total_orders'],
+            ];
+        }
+
+        return $totals;
+    }
+
     private static function dateRangeWhere(int $clientId, ?string $from, ?string $to): array
     {
         $conditions = ['p.client_id = :client_id'];

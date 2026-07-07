@@ -391,6 +391,29 @@ table tr:last-child td { border-bottom: none; }
   color: var(--color-muted);
 }
 
+.dashboard-tabs {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid #334155;
+}
+
+.dashboard-tabs a {
+  color: var(--color-muted);
+  text-decoration: none;
+  padding-bottom: 10px;
+  font-size: 0.9rem;
+}
+
+.dashboard-tabs a.nav-active {
+  color: var(--color-text);
+  border-bottom: 2px solid var(--color-primary);
+}
+
+.comparison-table td.client-name {
+  font-weight: 600;
+}
+
 @media (max-width: 900px) {
   .kpi-grid { grid-template-columns: repeat(2, 1fr); }
   .chart-grid { grid-template-columns: 1fr; }

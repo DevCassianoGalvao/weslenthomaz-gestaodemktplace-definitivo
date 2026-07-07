@@ -22,6 +22,7 @@ session_start([
 
 use App\Controllers\AuthController;
 use App\Controllers\ClientController;
+use App\Controllers\DashboardController;
 use App\Controllers\HistoryController;
 use App\Controllers\HomeController;
 use App\Controllers\MarketplaceController;
@@ -64,6 +65,8 @@ $router->get('/clients/{clientId}/periods/new', [new PeriodController(), 'create
 $router->post('/clients/{clientId}/periods', [new PeriodController(), 'store'], $agencyOnly);
 $router->get('/periods/{id}/edit', [new PeriodController(), 'edit'], $agencyOnly);
 $router->post('/periods/{id}/update', [new PeriodController(), 'update'], $agencyOnly);
+
+$router->get('/clients/{id}/dashboard', [new DashboardController(), 'client'], $agencyOnly);
 
 $adminOnly = [
     fn() => AuthMiddleware::handle(),

@@ -10,9 +10,12 @@
  * @var array $marketplaceTotals
  * @var array $marketplaceMatrix
  * @var array $periods
+ * @var bool $isInternal
+ * @var array|null $allClients
  */
 use App\Core\Format;
 
+$isInternal = $isInternal ?? false;
 $hasAnyData = !empty($referenceMonths);
 
 // --- Dados para os gráficos (ApexCharts) ---
@@ -70,7 +73,26 @@ krsort($monthGroups);
 <body>
     <?php $active = 'dashboard'; require __DIR__ . '/../partials/topbar.php'; ?>
     <div class="content">
-        <h1><?= htmlspecialchars($client['name'], ENT_QUOTES, 'UTF-8') ?></h1>
+        <?php if ($isInternal): ?>
+            <div class="dashboard-tabs">
+                <a href="/clients/<?= (int) $client['id'] ?>/dashboard" class="nav-active">Visão do cliente</a>
+                <a href="/dashboard">Comparativo entre clientes</a>
+            </div>
+            <div class="content-header">
+                <h1><?= htmlspecialchars($client['name'], ENT_QUOTES, 'UTF-8') ?></h1>
+                <form method="get" action="" onchange="location.href = '/clients/' + this.client_id.value + '/dashboard'">
+                    <select name="client_id" style="padding:8px 12px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:#e2e8f0;">
+                        <?php foreach ($allClients as $c): ?>
+                            <option value="<?= (int) $c['id'] ?>" <?= (int) $c['id'] === (int) $client['id'] ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($c['name'], ENT_QUOTES, 'UTF-8') ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </form>
+            </div>
+        <?php else: ?>
+            <h1><?= htmlspecialchars($client['name'], ENT_QUOTES, 'UTF-8') ?></h1>
+        <?php endif; ?>
 
         <?php if (!$hasAnyData): ?>
             <div class="empty-state">
