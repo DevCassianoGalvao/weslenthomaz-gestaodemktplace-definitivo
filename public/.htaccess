@@ -1,0 +1,10 @@
+Options -Indexes
+RewriteEngine On
+
+# Serve arquivos e diretórios reais diretamente (assets)
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Tudo mais passa pelo front controller
+RewriteRule ^ index.php [L]
