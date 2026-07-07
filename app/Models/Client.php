@@ -126,10 +126,23 @@ class Client
         return $user ?: null;
     }
 
+    /**
+     * Transliteração explícita (não usa iconv//TRANSLIT) porque o comportamento
+     * varia entre plataformas — no Windows ele insere marcas diacríticas em vez
+     * de removê-las (ex: "eletrônicos" virava "eletr^onicos").
+     */
     public static function slugify(string $text): string
     {
-        $text = strtolower(trim($text));
-        $text = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $text) ?: $text;
+        $text = mb_strtolower(trim($text), 'UTF-8');
+        $accents = [
+            'á' => 'a', 'à' => 'a', 'â' => 'a', 'ã' => 'a', 'ä' => 'a',
+            'é' => 'e', 'è' => 'e', 'ê' => 'e', 'ë' => 'e',
+            'í' => 'i', 'ì' => 'i', 'î' => 'i', 'ï' => 'i',
+            'ó' => 'o', 'ò' => 'o', 'ô' => 'o', 'õ' => 'o', 'ö' => 'o',
+            'ú' => 'u', 'ù' => 'u', 'û' => 'u', 'ü' => 'u',
+            'ç' => 'c', 'ñ' => 'n', 'ý' => 'y',
+        ];
+        $text = strtr($text, $accents);
         $text = preg_replace('/[^a-z0-9]+/', '-', $text);
         return trim($text, '-');
     }
