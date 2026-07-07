@@ -110,6 +110,30 @@ try {
         }
     }
 
+    // Catálogo padrão de marketplaces (mesmos canais da planilha atual da agência).
+    $catalog = [
+        ['Shopee', 'shopee', '#EE4D2D'],
+        ['Shein', 'shein', '#000000'],
+        ['TikTok Shop', 'tiktok', '#000000'],
+        ['Magalu', 'magalu', '#0086FF'],
+        ['Kway', 'kway', '#6D28D9'],
+        ['Mercado Livre', 'mercado-livre', '#FFE600'],
+        ['Amazon', 'amazon', '#FF9900'],
+        ['Temu', 'temu', '#FB7701'],
+    ];
+
+    $insertMarketplace = $pdo->prepare(
+        'INSERT IGNORE INTO marketplaces (name, slug, color, is_active) VALUES (:name, :slug, :color, 1)'
+    );
+    $addedMarketplaces = 0;
+    foreach ($catalog as [$name, $slug, $color]) {
+        $insertMarketplace->execute(['name' => $name, 'slug' => $slug, 'color' => $color]);
+        $addedMarketplaces += $insertMarketplace->rowCount();
+    }
+    $log[] = $addedMarketplaces > 0
+        ? "Catálogo de marketplaces: {$addedMarketplaces} canal(is) novo(s) adicionado(s)."
+        : 'Catálogo de marketplaces: nenhum canal novo (já estavam cadastrados).';
+
     $log[] = '<strong>Segurança:</strong> apague database/install.php e public/install.php agora que a instalação foi concluída.';
 
     render_result('Instalação concluída', '<ul><li>' . implode('</li><li>', $log) . '</li></ul>');

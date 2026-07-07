@@ -44,4 +44,25 @@ class User
 
         return (int) Database::connection()->lastInsertId();
     }
+
+    public static function emailExists(string $email): bool
+    {
+        $stmt = Database::connection()->prepare('SELECT COUNT(*) FROM users WHERE email = :email');
+        $stmt->execute(['email' => $email]);
+
+        return (int) $stmt->fetchColumn() > 0;
+    }
+
+    /** Senha inicial gerada pelo sistema (PRD 5.3) — evita caracteres ambíguos (0/O, 1/l/I). */
+    public static function generatePassword(int $length = 12): string
+    {
+        $chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$%';
+        $password = '';
+        $max = strlen($chars) - 1;
+        for ($i = 0; $i < $length; $i++) {
+            $password .= $chars[random_int(0, $max)];
+        }
+
+        return $password;
+    }
 }

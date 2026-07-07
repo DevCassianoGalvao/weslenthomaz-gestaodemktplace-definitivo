@@ -7,13 +7,7 @@
     <link rel="stylesheet" href="/assets/css/app.css">
 </head>
 <body>
-    <div class="topbar">
-        <div>Olá, <strong><?= htmlspecialchars($userName, ENT_QUOTES, 'UTF-8') ?></strong> <span class="badge"><?= htmlspecialchars($role, ENT_QUOTES, 'UTF-8') ?></span></div>
-        <form method="post" action="/logout">
-            <?= \App\Core\Csrf::field() ?>
-            <button type="submit">Sair</button>
-        </form>
-    </div>
+    <?php $active = 'dashboard'; require __DIR__ . '/../partials/topbar.php'; ?>
     <div class="content">
         <h1>Dashboard</h1>
         <p>Placeholder da Fase 1 — KPIs e gráficos chegam na Fase 5/6.</p>

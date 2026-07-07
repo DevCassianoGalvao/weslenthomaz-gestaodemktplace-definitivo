@@ -21,13 +21,6 @@ class HomeController
         exit;
     }
 
-    public function clients(): void
-    {
-        View::render('home/clients_placeholder', [
-            'userName' => Auth::name(),
-        ]);
-    }
-
     public function dashboard(): void
     {
         // Fase 1: placeholder. client_id sempre resolvido a partir da sessão
@@ -35,8 +28,6 @@ class HomeController
         $clientId = Auth::isClient() ? Auth::clientId() : null;
 
         View::render('home/dashboard_placeholder', [
-            'userName' => Auth::name(),
-            'role' => Auth::role(),
             'clientId' => $clientId,
         ]);
     }
