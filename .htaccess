@@ -1,0 +1,5 @@
+# Salvaguarda caso o document root aponte para a raiz do projeto em vez de /public.
+# O ideal em produção é configurar o document root do (sub)domínio para /public.
+RewriteEngine On
+RewriteCond %{REQUEST_URI} !^/public/
+RewriteRule ^(app|config|database)/ - [F,L]
