@@ -33,7 +33,7 @@ try {
     $pdo->exec("CREATE DATABASE IF NOT EXISTS `{$dbName}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
     $pdo->exec("USE `{$dbName}`");
 
-    $expectedTables = ['clients', 'users', 'marketplaces', 'client_marketplaces', 'periods', 'entries', 'entry_history'];
+    $expectedTables = ['clients', 'users', 'marketplaces', 'client_marketplaces', 'client_marketplace_accounts', 'periods', 'entries', 'entry_history'];
 
     $existing = [];
     foreach ($expectedTables as $table) {

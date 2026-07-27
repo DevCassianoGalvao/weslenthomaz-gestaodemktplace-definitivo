@@ -137,6 +137,16 @@ Se o novo domínio estiver apontando para o banco antigo, este passo não é
 obrigatório. Primeiro teste login e dashboard. Rode o instalador só se o banco
 estiver vazio ou se você precisar recriar tabelas/catálogo/admin inicial.
 
+Para banco antigo que já estava em uso antes do suporte a múltiplas contas de
+marketplace, rode uma vez:
+
+```
+https://gestorweslen.com.br/paineldemetricas/migrate-marketplace-accounts.php
+```
+
+Depois apague `public/migrate-marketplace-accounts.php` e
+`database/migrate_marketplace_accounts.php`.
+
 Acesse no navegador:
 
 ```

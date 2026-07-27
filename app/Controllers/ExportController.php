@@ -186,9 +186,9 @@ class ExportController
     {
         $sheet->setTitle('Detalhado');
 
-        $headers = ['Competência', 'Período', 'Marketplace', 'Valor (R$)', 'Pedidos', 'Participação'];
+        $headers = ['Competencia', 'Periodo', 'Marketplace', 'Conta', 'Valor (R$)', 'Pedidos', 'Participacao'];
         $sheet->fromArray($headers, null, 'A1');
-        $sheet->getStyle('A1:F1')->getFont()->setBold(true);
+        $sheet->getStyle('A1:G1')->getFont()->setBold(true);
 
         $monthGroups = [];
         foreach ($periods as $period) {
@@ -213,35 +213,36 @@ class ExportController
                     $sheet->setCellValue("A{$row}", $month);
                     $sheet->setCellValue("B{$row}", $label);
                     $sheet->setCellValue("C{$row}", $entry['marketplace_name']);
+                    $sheet->setCellValue("D{$row}", $entry['account_name'] ?? '');
 
-                    $sheet->setCellValue("D{$row}", ((int) $entry['value_cents']) / 100);
-                    $sheet->getStyle("D{$row}")->getNumberFormat()->setFormatCode('"R$" #,##0.00');
+                    $sheet->setCellValue("E{$row}", ((int) $entry['value_cents']) / 100);
+                    $sheet->getStyle("E{$row}")->getNumberFormat()->setFormatCode('"R$" #,##0.00');
 
-                    $sheet->setCellValue("E{$row}", (int) $entry['orders_count']);
+                    $sheet->setCellValue("F{$row}", (int) $entry['orders_count']);
 
                     $pct = $periodTotalCents > 0 ? ((int) $entry['value_cents']) / $periodTotalCents : 0;
-                    $sheet->setCellValue("F{$row}", $pct);
-                    $sheet->getStyle("F{$row}")->getNumberFormat()->setFormatCode('0.0%');
+                    $sheet->setCellValue("G{$row}", $pct);
+                    $sheet->getStyle("G{$row}")->getNumberFormat()->setFormatCode('0.0%');
 
                     $row++;
                 }
 
-                $sheet->setCellValue("B{$row}", 'Total do período');
-                $sheet->setCellValue("D{$row}", $periodTotalCents / 100);
-                $sheet->getStyle("D{$row}")->getNumberFormat()->setFormatCode('"R$" #,##0.00');
-                $sheet->getStyle("B{$row}:D{$row}")->getFont()->setBold(true);
+                $sheet->setCellValue("B{$row}", 'Total do periodo');
+                $sheet->setCellValue("E{$row}", $periodTotalCents / 100);
+                $sheet->getStyle("E{$row}")->getNumberFormat()->setFormatCode('"R$" #,##0.00');
+                $sheet->getStyle("B{$row}:E{$row}")->getFont()->setBold(true);
                 $row++;
             }
 
             $sheet->setCellValue("A{$row}", "TOTAL {$month}");
-            $sheet->setCellValue("D{$row}", $monthTotalCents / 100);
-            $sheet->getStyle("D{$row}")->getNumberFormat()->setFormatCode('"R$" #,##0.00');
-            $sheet->getStyle("A{$row}:F{$row}")->getFont()->setBold(true);
-            $sheet->getStyle("A{$row}:F{$row}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('DDEBF7');
+            $sheet->setCellValue("E{$row}", $monthTotalCents / 100);
+            $sheet->getStyle("E{$row}")->getNumberFormat()->setFormatCode('"R$" #,##0.00');
+            $sheet->getStyle("A{$row}:G{$row}")->getFont()->setBold(true);
+            $sheet->getStyle("A{$row}:G{$row}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('DDEBF7');
             $row += 2;
         }
 
-        foreach (['A', 'B', 'C', 'D', 'E', 'F'] as $col) {
+        foreach (['A', 'B', 'C', 'D', 'E', 'F', 'G'] as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
     }

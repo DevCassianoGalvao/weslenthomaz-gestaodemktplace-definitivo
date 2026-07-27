@@ -11,6 +11,12 @@ CREATE TABLE IF NOT EXISTS clients (
   slug VARCHAR(140) UNIQUE NOT NULL,
   logo_url VARCHAR(255) NULL,
   brand_color VARCHAR(7) NULL,
+  website_url VARCHAR(255) NULL,
+  instagram_url VARCHAR(255) NULL,
+  facebook_url VARCHAR(255) NULL,
+  tiktok_url VARCHAR(255) NULL,
+  whatsapp VARCHAR(40) NULL,
+  notes VARCHAR(255) NULL,
   status ENUM('active','paused','archived') DEFAULT 'active',
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -43,6 +49,18 @@ CREATE TABLE IF NOT EXISTS client_marketplaces (
   FOREIGN KEY (marketplace_id) REFERENCES marketplaces(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE IF NOT EXISTS client_marketplace_accounts (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  client_id INT NOT NULL,
+  marketplace_id INT NOT NULL,
+  account_name VARCHAR(120) NOT NULL,
+  account_identifier VARCHAR(120) NULL,
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
+  FOREIGN KEY (marketplace_id) REFERENCES marketplaces(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS periods (
   id INT PRIMARY KEY AUTO_INCREMENT,
   client_id INT NOT NULL,
@@ -59,13 +77,15 @@ CREATE TABLE IF NOT EXISTS periods (
 CREATE TABLE IF NOT EXISTS entries (
   id INT PRIMARY KEY AUTO_INCREMENT,
   period_id INT NOT NULL,
+  client_marketplace_account_id INT NULL,
   marketplace_id INT NOT NULL,
   value_cents BIGINT NOT NULL DEFAULT 0,
   orders_count INT NOT NULL DEFAULT 0, -- nº de pedidos (base do ticket médio)
   notes VARCHAR(255) NULL,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  UNIQUE KEY uniq_period_marketplace (period_id, marketplace_id),
+  UNIQUE KEY uniq_period_account (period_id, client_marketplace_account_id),
   FOREIGN KEY (period_id) REFERENCES periods(id) ON DELETE CASCADE,
+  FOREIGN KEY (client_marketplace_account_id) REFERENCES client_marketplace_accounts(id),
   FOREIGN KEY (marketplace_id) REFERENCES marketplaces(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -74,6 +94,7 @@ CREATE TABLE IF NOT EXISTS entry_history (
   entry_id INT NULL, -- pode ser NULL se o lançamento original foi apagado
   period_id INT NOT NULL,
   client_id INT NOT NULL,
+  client_marketplace_account_id INT NULL,
   marketplace_id INT NOT NULL,
   action ENUM('create','update','delete') NOT NULL,
   old_value_cents BIGINT NULL,
@@ -83,6 +104,7 @@ CREATE TABLE IF NOT EXISTS entry_history (
   changed_by INT NOT NULL,
   changed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (client_id) REFERENCES clients(id),
+  FOREIGN KEY (client_marketplace_account_id) REFERENCES client_marketplace_accounts(id),
   FOREIGN KEY (marketplace_id) REFERENCES marketplaces(id),
   FOREIGN KEY (changed_by) REFERENCES users(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

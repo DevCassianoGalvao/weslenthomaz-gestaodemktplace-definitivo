@@ -23,6 +23,7 @@ class ClientController
             'mode' => 'create',
             'client' => null,
             'selectedMarketplaceIds' => [],
+            'marketplaceAccounts' => [],
             'marketplaces' => Marketplace::allActive(),
             'errors' => [],
             'old' => [],
@@ -38,6 +39,10 @@ class ClientController
         }
 
         [$data, $errors] = $this->validate($_POST);
+        $marketplaceAccounts = $this->parseMarketplaceAccounts($_POST);
+        if (empty($marketplaceAccounts)) {
+            $errors['marketplace_accounts'] = 'Cadastre pelo menos uma conta de marketplace.';
+        }
 
         // E-mail da conta do cliente final é obrigatório na criação (PRD 5.3).
         $accountEmail = trim($_POST['account_email'] ?? '');
@@ -55,7 +60,8 @@ class ClientController
             View::render('clients/form', [
                 'mode' => 'create',
                 'client' => null,
-                'selectedMarketplaceIds' => array_map('intval', $_POST['marketplaces'] ?? []),
+                'selectedMarketplaceIds' => array_map('intval', array_column($marketplaceAccounts, 'marketplace_id')),
+                'marketplaceAccounts' => $marketplaceAccounts,
                 'marketplaces' => Marketplace::allActive(),
                 'errors' => $errors,
                 'old' => array_merge($data, ['account_name' => $accountName, 'account_email' => $accountEmail]),
@@ -63,8 +69,8 @@ class ClientController
             return;
         }
 
-        $clientId = Client::create($data['name'], $data['slug'], $data['logo_url'], $data['brand_color']);
-        Client::syncMarketplaces($clientId, array_map('intval', $_POST['marketplaces'] ?? []));
+        $clientId = Client::create($data['name'], $data['slug'], $data['logo_url'], $data['brand_color'], $data);
+        Client::syncMarketplaceAccounts($clientId, $marketplaceAccounts);
 
         $generatedPassword = User::generatePassword();
         User::create($accountName, $accountEmail, $generatedPassword, 'client', $clientId);
@@ -90,6 +96,7 @@ class ClientController
             'mode' => 'edit',
             'client' => $client,
             'selectedMarketplaceIds' => Client::marketplaceIds((int) $id),
+            'marketplaceAccounts' => Client::marketplaceAccounts((int) $id),
             'marketplaces' => Marketplace::allActive(),
             'errors' => [],
             'old' => [],
@@ -114,6 +121,10 @@ class ClientController
         }
 
         [$data, $errors] = $this->validate($_POST, $clientId);
+        $marketplaceAccounts = $this->parseMarketplaceAccounts($_POST);
+        if (empty($marketplaceAccounts)) {
+            $errors['marketplace_accounts'] = 'Cadastre pelo menos uma conta de marketplace.';
+        }
 
         $status = $_POST['status'] ?? 'active';
         if (!in_array($status, ['active', 'paused', 'archived'], true)) {
@@ -124,7 +135,8 @@ class ClientController
             View::render('clients/form', [
                 'mode' => 'edit',
                 'client' => array_merge($client, $data, ['status' => $status]),
-                'selectedMarketplaceIds' => array_map('intval', $_POST['marketplaces'] ?? []),
+                'selectedMarketplaceIds' => array_map('intval', array_column($marketplaceAccounts, 'marketplace_id')),
+                'marketplaceAccounts' => $marketplaceAccounts,
                 'marketplaces' => Marketplace::allActive(),
                 'errors' => $errors,
                 'old' => [],
@@ -133,8 +145,8 @@ class ClientController
             return;
         }
 
-        Client::update($clientId, $data['name'], $data['slug'], $data['logo_url'], $data['brand_color'], $status);
-        Client::syncMarketplaces($clientId, array_map('intval', $_POST['marketplaces'] ?? []));
+        Client::update($clientId, $data['name'], $data['slug'], $data['logo_url'], $data['brand_color'], $status, $data);
+        Client::syncMarketplaceAccounts($clientId, $marketplaceAccounts);
 
         header('Location: ' . url('/clients'));
         exit;
@@ -167,13 +179,56 @@ class ClientController
             $errors['logo_url'] = 'URL do logo inválida.';
         }
 
+        foreach (['website_url', 'instagram_url', 'facebook_url', 'tiktok_url'] as $field) {
+            $value = trim($input[$field] ?? '');
+            if ($value !== '' && !filter_var($value, FILTER_VALIDATE_URL)) {
+                $errors[$field] = 'URL invalida.';
+            }
+        }
+
         $data = [
             'name' => $name,
             'slug' => $slug,
             'logo_url' => $logoUrl,
             'brand_color' => $brandColor,
+            'website_url' => trim($input['website_url'] ?? ''),
+            'instagram_url' => trim($input['instagram_url'] ?? ''),
+            'facebook_url' => trim($input['facebook_url'] ?? ''),
+            'tiktok_url' => trim($input['tiktok_url'] ?? ''),
+            'whatsapp' => trim($input['whatsapp'] ?? ''),
+            'notes' => trim($input['notes'] ?? ''),
         ];
 
         return [$data, $errors];
+    }
+
+    private function parseMarketplaceAccounts(array $input): array
+    {
+        $raw = $input['marketplace_accounts'] ?? [];
+        if (!is_array($raw)) {
+            return [];
+        }
+
+        $accounts = [];
+        foreach ($raw as $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+
+            $marketplaceId = (int) ($row['marketplace_id'] ?? 0);
+            $accountName = trim((string) ($row['account_name'] ?? ''));
+            if ($marketplaceId <= 0 && $accountName === '') {
+                continue;
+            }
+
+            $accounts[] = [
+                'id' => !empty($row['id']) ? (int) $row['id'] : null,
+                'marketplace_id' => $marketplaceId,
+                'account_name' => $accountName,
+                'account_identifier' => trim((string) ($row['account_identifier'] ?? '')),
+            ];
+        }
+
+        return array_values($accounts);
     }
 }

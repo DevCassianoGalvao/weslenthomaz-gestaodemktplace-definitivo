@@ -81,6 +81,7 @@ $router->post('/clients/{id}/update', [new ClientController(), 'update'], $agenc
 
 $router->get('/marketplaces', [new MarketplaceController(), 'index'], $agencyOnly);
 $router->post('/marketplaces', [new MarketplaceController(), 'store'], $agencyOnly);
+$router->post('/marketplaces/{id}/update', [new MarketplaceController(), 'update'], $agencyOnly);
 $router->post('/marketplaces/{id}/toggle', [new MarketplaceController(), 'toggle'], $agencyOnly);
 
 $router->get('/clients/{clientId}/periods', [new PeriodController(), 'index'], $agencyOnly);

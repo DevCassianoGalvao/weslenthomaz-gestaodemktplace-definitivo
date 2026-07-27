@@ -105,6 +105,30 @@ $accentColor = (!empty($client['brand_color']) && preg_match('/^#[0-9a-fA-F]{6}$
                     <h1><?= htmlspecialchars($client['name'], ENT_QUOTES, 'UTF-8') ?></h1>
                 <?php endif; ?>
 
+                <?php
+                    $profileLinks = array_filter([
+                        'Site' => $client['website_url'] ?? null,
+                        'Instagram' => $client['instagram_url'] ?? null,
+                        'Facebook' => $client['facebook_url'] ?? null,
+                        'TikTok' => $client['tiktok_url'] ?? null,
+                    ]);
+                ?>
+                <?php if (!empty($client['logo_url']) || !empty($profileLinks) || !empty($client['whatsapp'])): ?>
+                    <div class="form-card" style="max-width:none;margin-bottom:20px;display:flex;align-items:center;gap:16px;">
+                        <?php if (!empty($client['logo_url'])): ?>
+                            <img src="<?= htmlspecialchars($client['logo_url'], ENT_QUOTES, 'UTF-8') ?>" alt="" style="width:56px;height:56px;object-fit:contain;border-radius:12px;background:var(--bg-inset);">
+                        <?php endif; ?>
+                        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+                            <?php foreach ($profileLinks as $label => $href): ?>
+                                <a class="btn-secondary" href="<?= htmlspecialchars($href, ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener" style="text-decoration:none;display:inline-flex;align-items:center;"><?= htmlspecialchars($label, ENT_QUOTES, 'UTF-8') ?></a>
+                            <?php endforeach; ?>
+                            <?php if (!empty($client['whatsapp'])): ?>
+                                <span class="text-muted"><?= htmlspecialchars($client['whatsapp'], ENT_QUOTES, 'UTF-8') ?></span>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                <?php endif; ?>
+
                 <?php if (!$hasAnyData): ?>
                     <div class="empty-state">
                         Nenhum lançamento registrado ainda.<br>
@@ -233,7 +257,7 @@ $accentColor = (!empty($client['brand_color']) && preg_match('/^#[0-9a-fA-F]{6}$
                                     </h4>
                                     <table>
                                         <thead>
-                                            <tr><th>Marketplace</th><th>Valor</th><th>Pedidos</th><th>Participação</th></tr>
+                                            <tr><th>Marketplace</th><th>Conta</th><th>Valor</th><th>Pedidos</th><th>Participação</th></tr>
                                         </thead>
                                         <tbody>
                                             <?php foreach ($period['entries'] as $entry): ?>
@@ -242,6 +266,7 @@ $accentColor = (!empty($client['brand_color']) && preg_match('/^#[0-9a-fA-F]{6}$
                                                         <span style="display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;background:<?= htmlspecialchars($entry['color'] ?: '#4f7fff', ENT_QUOTES, 'UTF-8') ?>;"></span>
                                                         <?= htmlspecialchars($entry['marketplace_name'], ENT_QUOTES, 'UTF-8') ?>
                                                     </td>
+                                                    <td><?= htmlspecialchars($entry['account_name'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
                                                     <td><?= Format::centsToBrl((int) $entry['value_cents']) ?></td>
                                                     <td><?= (int) $entry['orders_count'] ?></td>
                                                     <td><?= $periodTotal > 0 ? number_format(($entry['value_cents'] / $periodTotal) * 100, 1, ',', '.') . '%' : '—' ?></td>

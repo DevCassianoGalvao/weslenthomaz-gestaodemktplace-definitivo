@@ -20,10 +20,16 @@ class Marketplace
             ->fetchAll();
     }
 
-    public static function slugExists(string $slug): bool
+    public static function slugExists(string $slug, ?int $excludeId = null): bool
     {
-        $stmt = Database::connection()->prepare('SELECT COUNT(*) FROM marketplaces WHERE slug = :slug');
-        $stmt->execute(['slug' => $slug]);
+        $sql = 'SELECT COUNT(*) FROM marketplaces WHERE slug = :slug';
+        $params = ['slug' => $slug];
+        if ($excludeId !== null) {
+            $sql .= ' AND id != :exclude_id';
+            $params['exclude_id'] = $excludeId;
+        }
+        $stmt = Database::connection()->prepare($sql);
+        $stmt->execute($params);
         return (int) $stmt->fetchColumn() > 0;
     }
 
@@ -35,6 +41,18 @@ class Marketplace
         $stmt->execute(['name' => $name, 'slug' => $slug, 'color' => $color]);
 
         return (int) Database::connection()->lastInsertId();
+    }
+
+    public static function update(int $id, string $name, string $slug, ?string $color): void
+    {
+        Database::connection()->prepare(
+            'UPDATE marketplaces SET name = :name, slug = :slug, color = :color WHERE id = :id'
+        )->execute([
+            'name' => $name,
+            'slug' => $slug,
+            'color' => $color,
+            'id' => $id,
+        ]);
     }
 
     public static function toggleActive(int $id): void

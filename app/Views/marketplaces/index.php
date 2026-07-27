@@ -30,10 +30,12 @@ $val = fn(string $key, string $default = '') => htmlspecialchars($old[$key] ?? $
                         <?php foreach ($marketplaces as $marketplace): ?>
                             <tr>
                                 <td>
-                                    <?php if (!empty($marketplace['color'])): ?>
-                                        <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:<?= htmlspecialchars($marketplace['color'], ENT_QUOTES, 'UTF-8') ?>;margin-right:6px;"></span>
-                                    <?php endif; ?>
-                                    <?= htmlspecialchars($marketplace['name'], ENT_QUOTES, 'UTF-8') ?>
+                                    <form method="post" action="<?= url('/marketplaces/' . (int) $marketplace['id'] . '/update') ?>" style="display:flex;gap:8px;align-items:center;">
+                                        <?= \App\Core\Csrf::field() ?>
+                                        <input type="color" name="color" value="<?= htmlspecialchars($marketplace['color'] ?: '#4f7fff', ENT_QUOTES, 'UTF-8') ?>" style="width:42px;height:36px;padding:2px;">
+                                        <input type="text" name="name" value="<?= htmlspecialchars($marketplace['name'], ENT_QUOTES, 'UTF-8') ?>" required style="min-width:180px;">
+                                        <button type="submit" class="btn-secondary">Salvar</button>
+                                    </form>
                                 </td>
                                 <td><?= htmlspecialchars($marketplace['slug'], ENT_QUOTES, 'UTF-8') ?></td>
                                 <td>

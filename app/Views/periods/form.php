@@ -63,7 +63,7 @@ $action = url($isEdit ? '/periods/' . (int) $period['id'] . '/update' : '/client
                             </div>
                         </div>
 
-                        <div class="section-title">Faturamento por marketplace</div>
+                        <div class="section-title">Faturamento por conta de marketplace</div>
 
                         <div x-data="periodMatrix(
                                 <?= htmlspecialchars(json_encode(array_values($marketplaces)), ENT_QUOTES, 'UTF-8') ?>,
@@ -72,7 +72,7 @@ $action = url($isEdit ? '/periods/' . (int) $period['id'] . '/update' : '/client
                             <table>
                                 <thead>
                                     <tr>
-                                        <th>Marketplace</th>
+                                        <th>Conta</th>
                                         <th>Valor (R$)</th>
                                         <th>Nº de pedidos</th>
                                     </tr>

@@ -201,7 +201,7 @@ class PeriodController
     }
 
     /**
-     * @return array<int, array{value_cents:int, orders_count:int}>
+     * @return array<int, array{marketplace_id:int, value_cents:int, orders_count:int}>
      */
     private function parseRows(array $input, array $marketplaces): array
     {
@@ -212,6 +212,7 @@ class PeriodController
         foreach ($marketplaces as $marketplace) {
             $id = (int) $marketplace['id'];
             $rows[$id] = [
+                'marketplace_id' => (int) ($marketplace['marketplace_id'] ?? $marketplace['id']),
                 'value_cents' => max(0, (int) ($valueCents[$id] ?? 0)),
                 'orders_count' => max(0, (int) ($ordersCount[$id] ?? 0)),
             ];

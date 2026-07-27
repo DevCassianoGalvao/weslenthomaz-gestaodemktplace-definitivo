@@ -11,14 +11,15 @@ class EntryHistory
     {
         $stmt = $pdo->prepare(
             'INSERT INTO entry_history
-                (entry_id, period_id, client_id, marketplace_id, action, old_value_cents, new_value_cents, old_orders_count, new_orders_count, changed_by)
+                (entry_id, period_id, client_id, client_marketplace_account_id, marketplace_id, action, old_value_cents, new_value_cents, old_orders_count, new_orders_count, changed_by)
              VALUES
-                (:entry_id, :period_id, :client_id, :marketplace_id, :action, :old_value_cents, :new_value_cents, :old_orders_count, :new_orders_count, :changed_by)'
+                (:entry_id, :period_id, :client_id, :client_marketplace_account_id, :marketplace_id, :action, :old_value_cents, :new_value_cents, :old_orders_count, :new_orders_count, :changed_by)'
         );
         $stmt->execute([
             'entry_id' => $data['entry_id'],
             'period_id' => $data['period_id'],
             'client_id' => $data['client_id'],
+            'client_marketplace_account_id' => $data['client_marketplace_account_id'] ?? null,
             'marketplace_id' => $data['marketplace_id'],
             'action' => $data['action'],
             'old_value_cents' => $data['old_value_cents'],
@@ -37,11 +38,12 @@ class EntryHistory
         [$where, $params] = self::buildWhere($filters);
 
         $stmt = Database::connection()->prepare(
-            "SELECT eh.*, c.name AS client_name, m.name AS marketplace_name, u.name AS changed_by_name,
+            "SELECT eh.*, c.name AS client_name, m.name AS marketplace_name, cma.account_name, u.name AS changed_by_name,
                     p.reference_month, p.label AS period_label
              FROM entry_history eh
              INNER JOIN clients c ON c.id = eh.client_id
              INNER JOIN marketplaces m ON m.id = eh.marketplace_id
+             LEFT JOIN client_marketplace_accounts cma ON cma.id = eh.client_marketplace_account_id
              INNER JOIN users u ON u.id = eh.changed_by
              LEFT JOIN periods p ON p.id = eh.period_id
              {$where}

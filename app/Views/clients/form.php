@@ -3,6 +3,7 @@
  * @var string $mode 'create' | 'edit'
  * @var array|null $client
  * @var int[] $selectedMarketplaceIds
+ * @var array $marketplaceAccounts
  * @var array $marketplaces
  * @var array $errors
  * @var array $old
@@ -11,6 +12,17 @@
 $isEdit = $mode === 'edit';
 $values = array_merge($client ?? [], $old ?? []);
 $val = fn(string $key, string $default = '') => htmlspecialchars($values[$key] ?? $default, ENT_QUOTES, 'UTF-8');
+$marketplaceAccounts = $marketplaceAccounts ?? [];
+$marketplaceOptionsJson = json_encode(array_map(fn($marketplace) => [
+    'id' => (int) $marketplace['id'],
+    'name' => $marketplace['name'],
+], $marketplaces));
+$accountRowsJson = json_encode(array_values(array_map(fn($account) => [
+    'id' => $account['id'] ?? null,
+    'marketplace_id' => (int) ($account['marketplace_id'] ?? 0),
+    'account_name' => $account['account_name'] ?? '',
+    'account_identifier' => $account['account_identifier'] ?? '',
+], $marketplaceAccounts)));
 ?>
 <!doctype html>
 <html lang="pt-BR">
@@ -51,6 +63,34 @@ $val = fn(string $key, string $default = '') => htmlspecialchars($values[$key] ?
                             <input type="url" id="logo_url" name="logo_url" value="<?= $val('logo_url') ?>" placeholder="https://...">
                             <?php if (!empty($errors['logo_url'])): ?><div class="field-error"><?= htmlspecialchars($errors['logo_url'], ENT_QUOTES, 'UTF-8') ?></div><?php endif; ?>
                         </div>
+                        <div class="field">
+                            <label for="website_url">Site</label>
+                            <input type="url" id="website_url" name="website_url" value="<?= $val('website_url') ?>" placeholder="https://...">
+                            <?php if (!empty($errors['website_url'])): ?><div class="field-error"><?= htmlspecialchars($errors['website_url'], ENT_QUOTES, 'UTF-8') ?></div><?php endif; ?>
+                        </div>
+                        <div class="field">
+                            <label for="instagram_url">Instagram</label>
+                            <input type="url" id="instagram_url" name="instagram_url" value="<?= $val('instagram_url') ?>" placeholder="https://instagram.com/...">
+                            <?php if (!empty($errors['instagram_url'])): ?><div class="field-error"><?= htmlspecialchars($errors['instagram_url'], ENT_QUOTES, 'UTF-8') ?></div><?php endif; ?>
+                        </div>
+                        <div class="field">
+                            <label for="facebook_url">Facebook</label>
+                            <input type="url" id="facebook_url" name="facebook_url" value="<?= $val('facebook_url') ?>" placeholder="https://facebook.com/...">
+                            <?php if (!empty($errors['facebook_url'])): ?><div class="field-error"><?= htmlspecialchars($errors['facebook_url'], ENT_QUOTES, 'UTF-8') ?></div><?php endif; ?>
+                        </div>
+                        <div class="field">
+                            <label for="tiktok_url">TikTok</label>
+                            <input type="url" id="tiktok_url" name="tiktok_url" value="<?= $val('tiktok_url') ?>" placeholder="https://tiktok.com/@...">
+                            <?php if (!empty($errors['tiktok_url'])): ?><div class="field-error"><?= htmlspecialchars($errors['tiktok_url'], ENT_QUOTES, 'UTF-8') ?></div><?php endif; ?>
+                        </div>
+                        <div class="field">
+                            <label for="whatsapp">WhatsApp</label>
+                            <input type="text" id="whatsapp" name="whatsapp" value="<?= $val('whatsapp') ?>" placeholder="+55...">
+                        </div>
+                        <div class="field" style="grid-column:1 / -1;">
+                            <label for="notes">ObservaÃ§Ãµes internas</label>
+                            <input type="text" id="notes" name="notes" value="<?= $val('notes') ?>">
+                        </div>
                         <?php if ($isEdit): ?>
                             <div class="field">
                                 <label for="status">Status</label>
@@ -63,15 +103,21 @@ $val = fn(string $key, string $default = '') => htmlspecialchars($values[$key] ?
                         <?php endif; ?>
                     </div>
 
-                    <div class="section-title">Marketplaces que este cliente opera</div>
-                    <div class="checkbox-list">
-                        <?php foreach ($marketplaces as $marketplace): ?>
-                            <label class="checkbox-chip">
-                                <input type="checkbox" name="marketplaces[]" value="<?= (int) $marketplace['id'] ?>"
-                                    <?= in_array((int) $marketplace['id'], $selectedMarketplaceIds, true) ? 'checked' : '' ?>>
-                                <?= htmlspecialchars($marketplace['name'], ENT_QUOTES, 'UTF-8') ?>
-                            </label>
-                        <?php endforeach; ?>
+                    <div class="section-title">Contas de marketplaces do cliente</div>
+                    <?php if (!empty($errors['marketplace_accounts'])): ?><div class="field-error" style="margin-bottom:10px;"><?= htmlspecialchars($errors['marketplace_accounts'], ENT_QUOTES, 'UTF-8') ?></div><?php endif; ?>
+                    <div id="marketplace-accounts" data-marketplaces="<?= htmlspecialchars($marketplaceOptionsJson, ENT_QUOTES, 'UTF-8') ?>" data-accounts="<?= htmlspecialchars($accountRowsJson, ENT_QUOTES, 'UTF-8') ?>">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Marketplace oficial</th>
+                                    <th>Nome da conta</th>
+                                    <th>Identificador</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="marketplace-account-rows"></tbody>
+                        </table>
+                        <button type="button" class="btn-secondary" id="add-marketplace-account" style="margin-top:12px;">Adicionar conta</button>
                     </div>
 
                     <?php if (!$isEdit): ?>
@@ -105,5 +151,69 @@ $val = fn(string $key, string $default = '') => htmlspecialchars($values[$key] ?
             </div>
         </main>
     </div>
+    <script>
+        (function () {
+            var root = document.getElementById('marketplace-accounts');
+            if (!root) return;
+
+            var marketplaces = JSON.parse(root.dataset.marketplaces || '[]');
+            var rows = JSON.parse(root.dataset.accounts || '[]');
+            var body = document.getElementById('marketplace-account-rows');
+            var addButton = document.getElementById('add-marketplace-account');
+
+            function addRow(data) {
+                data = data || {};
+                var index = body.children.length;
+                var tr = document.createElement('tr');
+
+                var options = marketplaces.map(function (marketplace) {
+                    var selected = Number(data.marketplace_id || 0) === Number(marketplace.id) ? ' selected' : '';
+                    return '<option value="' + marketplace.id + '"' + selected + '>' + escapeHtml(marketplace.name) + '</option>';
+                }).join('');
+
+                tr.innerHTML =
+                    '<td>' +
+                        '<input type="hidden" name="marketplace_accounts[' + index + '][id]" value="' + escapeAttr(data.id || '') + '">' +
+                        '<select name="marketplace_accounts[' + index + '][marketplace_id]" required>' +
+                            '<option value="">Selecione</option>' + options +
+                        '</select>' +
+                    '</td>' +
+                    '<td><input type="text" name="marketplace_accounts[' + index + '][account_name]" value="' + escapeAttr(data.account_name || '') + '" placeholder="ex: Shopee Principal" required></td>' +
+                    '<td><input type="text" name="marketplace_accounts[' + index + '][account_identifier]" value="' + escapeAttr(data.account_identifier || '') + '" placeholder="loja, ID ou apelido"></td>' +
+                    '<td><button type="button" class="btn-secondary" data-remove-row>Remover</button></td>';
+
+                tr.querySelector('[data-remove-row]').addEventListener('click', function () {
+                    tr.remove();
+                    reindexRows();
+                });
+                body.appendChild(tr);
+            }
+
+            function reindexRows() {
+                Array.prototype.forEach.call(body.children, function (tr, index) {
+                    Array.prototype.forEach.call(tr.querySelectorAll('[name^="marketplace_accounts["]'), function (field) {
+                        field.name = field.name.replace(/marketplace_accounts\[\d+\]/, 'marketplace_accounts[' + index + ']');
+                    });
+                });
+            }
+
+            function escapeHtml(value) {
+                return String(value).replace(/[&<>"']/g, function (char) {
+                    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[char];
+                });
+            }
+
+            function escapeAttr(value) {
+                return escapeHtml(value);
+            }
+
+            if (rows.length === 0) {
+                addRow();
+            } else {
+                rows.forEach(addRow);
+            }
+            addButton.addEventListener('click', function () { addRow(); });
+        })();
+    </script>
 </body>
 </html>

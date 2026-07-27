@@ -33,13 +33,14 @@ class HistoryController
 
         $out = fopen('php://output', 'w');
         fprintf($out, "\xEF\xBB\xBF"); // BOM para o Excel abrir acentos corretamente
-        fputcsv($out, ['Data/hora', 'Cliente', 'Marketplace', 'Competência', 'Ação', 'Valor anterior', 'Valor novo', 'Pedidos anterior', 'Pedidos novo', 'Alterado por'], ';');
+        fputcsv($out, ['Data/hora', 'Cliente', 'Marketplace', 'Conta', 'Competência', 'Ação', 'Valor anterior', 'Valor novo', 'Pedidos anterior', 'Pedidos novo', 'Alterado por'], ';');
 
         foreach ($rows as $row) {
             fputcsv($out, [
                 $row['changed_at'],
                 $row['client_name'],
                 $row['marketplace_name'],
+                $row['account_name'] ?? '',
                 $row['reference_month'],
                 $row['action'],
                 $row['old_value_cents'] !== null ? Format::centsToBrl((int) $row['old_value_cents']) : '',

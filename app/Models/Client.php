@@ -10,9 +10,9 @@ class Client
     {
         return Database::connection()->query(
             'SELECT c.id, c.name, c.slug, c.logo_url, c.brand_color, c.status, c.created_at,
-                    COUNT(cm.marketplace_id) AS marketplace_count
+                    COUNT(cma.id) AS marketplace_count
              FROM clients c
-             LEFT JOIN client_marketplaces cm ON cm.client_id = c.id
+             LEFT JOIN client_marketplace_accounts cma ON cma.client_id = c.id AND cma.is_active = 1
              GROUP BY c.id
              ORDER BY c.name'
         )->fetchAll();
@@ -41,31 +41,56 @@ class Client
         return (int) $stmt->fetchColumn() > 0;
     }
 
-    public static function create(string $name, string $slug, ?string $logoUrl, ?string $brandColor): int
+    public static function create(string $name, string $slug, ?string $logoUrl, ?string $brandColor, array $profile = []): int
     {
         $stmt = Database::connection()->prepare(
-            'INSERT INTO clients (name, slug, logo_url, brand_color, status) VALUES (:name, :slug, :logo_url, :brand_color, "active")'
+            'INSERT INTO clients (name, slug, logo_url, brand_color, website_url, instagram_url, facebook_url, tiktok_url, whatsapp, notes, status)
+             VALUES (:name, :slug, :logo_url, :brand_color, :website_url, :instagram_url, :facebook_url, :tiktok_url, :whatsapp, :notes, "active")'
         );
         $stmt->execute([
             'name' => $name,
             'slug' => $slug,
             'logo_url' => $logoUrl ?: null,
             'brand_color' => $brandColor ?: null,
+            'website_url' => ($profile['website_url'] ?? '') ?: null,
+            'instagram_url' => ($profile['instagram_url'] ?? '') ?: null,
+            'facebook_url' => ($profile['facebook_url'] ?? '') ?: null,
+            'tiktok_url' => ($profile['tiktok_url'] ?? '') ?: null,
+            'whatsapp' => ($profile['whatsapp'] ?? '') ?: null,
+            'notes' => ($profile['notes'] ?? '') ?: null,
         ]);
 
         return (int) Database::connection()->lastInsertId();
     }
 
-    public static function update(int $id, string $name, string $slug, ?string $logoUrl, ?string $brandColor, string $status): void
+    public static function update(int $id, string $name, string $slug, ?string $logoUrl, ?string $brandColor, string $status, array $profile = []): void
     {
         $stmt = Database::connection()->prepare(
-            'UPDATE clients SET name = :name, slug = :slug, logo_url = :logo_url, brand_color = :brand_color, status = :status WHERE id = :id'
+            'UPDATE clients
+             SET name = :name,
+                 slug = :slug,
+                 logo_url = :logo_url,
+                 brand_color = :brand_color,
+                 website_url = :website_url,
+                 instagram_url = :instagram_url,
+                 facebook_url = :facebook_url,
+                 tiktok_url = :tiktok_url,
+                 whatsapp = :whatsapp,
+                 notes = :notes,
+                 status = :status
+             WHERE id = :id'
         );
         $stmt->execute([
             'name' => $name,
             'slug' => $slug,
             'logo_url' => $logoUrl ?: null,
             'brand_color' => $brandColor ?: null,
+            'website_url' => ($profile['website_url'] ?? '') ?: null,
+            'instagram_url' => ($profile['instagram_url'] ?? '') ?: null,
+            'facebook_url' => ($profile['facebook_url'] ?? '') ?: null,
+            'tiktok_url' => ($profile['tiktok_url'] ?? '') ?: null,
+            'whatsapp' => ($profile['whatsapp'] ?? '') ?: null,
+            'notes' => ($profile['notes'] ?? '') ?: null,
             'status' => $status,
             'id' => $id,
         ]);
@@ -85,11 +110,33 @@ class Client
     public static function marketplaces(int $clientId): array
     {
         $stmt = Database::connection()->prepare(
-            'SELECT m.id, m.name, m.slug, m.color
-             FROM marketplaces m
-             INNER JOIN client_marketplaces cm ON cm.marketplace_id = m.id
-             WHERE cm.client_id = :client_id
-             ORDER BY m.name'
+            'SELECT cma.id,
+                    cma.marketplace_id,
+                    cma.account_name,
+                    cma.account_identifier,
+                    m.name AS marketplace_name,
+                    m.slug,
+                    m.color,
+                    CONCAT(m.name, " - ", cma.account_name) AS name
+             FROM client_marketplace_accounts cma
+             INNER JOIN marketplaces m ON m.id = cma.marketplace_id
+             WHERE cma.client_id = :client_id AND cma.is_active = 1
+             ORDER BY m.name, cma.account_name'
+        );
+        $stmt->execute(['client_id' => $clientId]);
+
+        return $stmt->fetchAll();
+    }
+
+    public static function marketplaceAccounts(int $clientId): array
+    {
+        $stmt = Database::connection()->prepare(
+            'SELECT cma.id, cma.client_id, cma.marketplace_id, cma.account_name, cma.account_identifier, cma.is_active,
+                    m.name AS marketplace_name, m.color
+             FROM client_marketplace_accounts cma
+             INNER JOIN marketplaces m ON m.id = cma.marketplace_id
+             WHERE cma.client_id = :client_id
+             ORDER BY m.name, cma.account_name'
         );
         $stmt->execute(['client_id' => $clientId]);
 
@@ -113,6 +160,68 @@ class Client
         foreach ($marketplaceIds as $marketplaceId) {
             $stmt->execute(['client_id' => $clientId, 'marketplace_id' => (int) $marketplaceId]);
         }
+    }
+
+    public static function syncMarketplaceAccounts(int $clientId, array $accounts): void
+    {
+        $pdo = Database::connection();
+        $keptIds = [];
+        $linkedMarketplaceIds = [];
+        $idsStmt = $pdo->prepare('SELECT id FROM client_marketplace_accounts WHERE client_id = :client_id');
+        $idsStmt->execute(['client_id' => $clientId]);
+        $allowedIds = array_map('intval', $idsStmt->fetchAll(\PDO::FETCH_COLUMN));
+
+        $upsert = $pdo->prepare(
+            'INSERT INTO client_marketplace_accounts (id, client_id, marketplace_id, account_name, account_identifier, is_active)
+             VALUES (:id, :client_id, :marketplace_id, :account_name, :account_identifier, 1)
+             ON DUPLICATE KEY UPDATE
+                marketplace_id = VALUES(marketplace_id),
+                account_name = VALUES(account_name),
+                account_identifier = VALUES(account_identifier),
+                is_active = 1'
+        );
+
+        foreach ($accounts as $account) {
+            $marketplaceId = (int) ($account['marketplace_id'] ?? 0);
+            $accountName = trim((string) ($account['account_name'] ?? ''));
+            if ($marketplaceId <= 0 || $accountName === '') {
+                continue;
+            }
+
+            $id = !empty($account['id']) ? (int) $account['id'] : null;
+            if ($id !== null && !in_array($id, $allowedIds, true)) {
+                $id = null;
+            }
+            $upsert->execute([
+                'id' => $id,
+                'client_id' => $clientId,
+                'marketplace_id' => $marketplaceId,
+                'account_name' => $accountName,
+                'account_identifier' => trim((string) ($account['account_identifier'] ?? '')) ?: null,
+            ]);
+
+            $savedId = $id ?: (int) $pdo->lastInsertId();
+            $keptIds[] = $savedId;
+            $linkedMarketplaceIds[] = $marketplaceId;
+
+            $pdo->prepare('UPDATE entries SET marketplace_id = :marketplace_id WHERE client_marketplace_account_id = :account_id')
+                ->execute(['marketplace_id' => $marketplaceId, 'account_id' => $savedId]);
+            $pdo->prepare('UPDATE entry_history SET marketplace_id = :marketplace_id WHERE client_marketplace_account_id = :account_id')
+                ->execute(['marketplace_id' => $marketplaceId, 'account_id' => $savedId]);
+        }
+
+        if (!empty($keptIds)) {
+            $placeholders = implode(',', array_fill(0, count($keptIds), '?'));
+            $stmt = $pdo->prepare(
+                "UPDATE client_marketplace_accounts SET is_active = 0 WHERE client_id = ? AND id NOT IN ({$placeholders})"
+            );
+            $stmt->execute(array_merge([$clientId], $keptIds));
+        } else {
+            $pdo->prepare('UPDATE client_marketplace_accounts SET is_active = 0 WHERE client_id = :client_id')
+                ->execute(['client_id' => $clientId]);
+        }
+
+        self::syncMarketplaces($clientId, array_values(array_unique($linkedMarketplaceIds)));
     }
 
     public static function accountUser(int $clientId): ?array

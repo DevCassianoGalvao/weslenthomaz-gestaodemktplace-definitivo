@@ -155,7 +155,12 @@ try {
             $clientId = (int) $pdo->lastInsertId();
 
             $linkStmt = $pdo->prepare('INSERT INTO client_marketplaces (client_id, marketplace_id) VALUES (:client_id, :marketplace_id)');
+            $accountStmt = $pdo->prepare(
+                'INSERT INTO client_marketplace_accounts (client_id, marketplace_id, account_name, is_active)
+                 VALUES (:client_id, :marketplace_id, :account_name, 1)'
+            );
             $marketplaceIds = [];
+            $accountIdsByMarketplace = [];
             foreach ($company['marketplaces'] as $mpSlug) {
                 if (!isset($marketplaceIdBySlug[$mpSlug])) {
                     continue;
@@ -163,6 +168,12 @@ try {
                 $mpId = $marketplaceIdBySlug[$mpSlug];
                 $marketplaceIds[] = $mpId;
                 $linkStmt->execute(['client_id' => $clientId, 'marketplace_id' => $mpId]);
+                $accountStmt->execute([
+                    'client_id' => $clientId,
+                    'marketplace_id' => $mpId,
+                    'account_name' => ucfirst(str_replace('-', ' ', $mpSlug)) . ' principal',
+                ]);
+                $accountIdsByMarketplace[$mpId] = (int) $pdo->lastInsertId();
             }
 
             $email = 'contato@' . $slug . '.com.br';
@@ -181,7 +192,8 @@ try {
                  VALUES (:client_id, :label, :start_date, :end_date, :reference_month, :created_by)'
             );
             $insertEntry = $pdo->prepare(
-                'INSERT INTO entries (period_id, marketplace_id, value_cents, orders_count) VALUES (:period_id, :marketplace_id, :value_cents, :orders_count)'
+                'INSERT INTO entries (period_id, client_marketplace_account_id, marketplace_id, value_cents, orders_count)
+                 VALUES (:period_id, :client_marketplace_account_id, :marketplace_id, :value_cents, :orders_count)'
             );
 
             foreach ($referenceMonths as $monthIndex => $refMonth) {
@@ -209,6 +221,7 @@ try {
 
                     $insertEntry->execute([
                         'period_id' => $periodId,
+                        'client_marketplace_account_id' => $accountIdsByMarketplace[$mpId] ?? null,
                         'marketplace_id' => $mpId,
                         'value_cents' => $valueCents,
                         'orders_count' => $ordersCount,

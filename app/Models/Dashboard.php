@@ -125,11 +125,17 @@ class Dashboard
         $placeholders = implode(',', array_fill(0, count($periodIds), '?'));
 
         $entriesStmt = Database::connection()->prepare(
-            "SELECT e.period_id, m.name AS marketplace_name, m.color, e.value_cents, e.orders_count
+            "SELECT e.period_id,
+                    m.name AS marketplace_name,
+                    cma.account_name,
+                    m.color,
+                    e.value_cents,
+                    e.orders_count
              FROM entries e
              INNER JOIN marketplaces m ON m.id = e.marketplace_id
+             LEFT JOIN client_marketplace_accounts cma ON cma.id = e.client_marketplace_account_id
              WHERE e.period_id IN ({$placeholders})
-             ORDER BY m.name ASC"
+             ORDER BY m.name ASC, cma.account_name ASC"
         );
         $entriesStmt->execute($periodIds);
 

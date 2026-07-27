@@ -89,6 +89,7 @@ $exportUrl = url('/history/export' . (empty($filters) ? '' : '?' . http_build_qu
                                 <th>Quando</th>
                                 <th>Cliente</th>
                                 <th>Marketplace</th>
+                                <th>Conta</th>
                                 <th>Ação</th>
                                 <th>Valor (antes → depois)</th>
                                 <th>Pedidos (antes → depois)</th>
@@ -101,6 +102,7 @@ $exportUrl = url('/history/export' . (empty($filters) ? '' : '?' . http_build_qu
                                     <td><?= htmlspecialchars(date('d/m/Y H:i', strtotime($entry['changed_at'])), ENT_QUOTES, 'UTF-8') ?></td>
                                     <td><?= htmlspecialchars($entry['client_name'], ENT_QUOTES, 'UTF-8') ?></td>
                                     <td><?= htmlspecialchars($entry['marketplace_name'], ENT_QUOTES, 'UTF-8') ?></td>
+                                    <td><?= htmlspecialchars($entry['account_name'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
                                     <td>
                                         <span class="badge badge-<?= htmlspecialchars($entry['action'], ENT_QUOTES, 'UTF-8') ?>">
                                             <span class="badge-dot"></span><?= htmlspecialchars($entry['action'], ENT_QUOTES, 'UTF-8') ?>

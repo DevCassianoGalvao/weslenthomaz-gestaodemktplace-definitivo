@@ -23,7 +23,7 @@
                         <thead>
                             <tr>
                                 <th>Nome</th>
-                                <th>Marketplaces</th>
+                                <th>Contas</th>
                                 <th>Status</th>
                                 <th>Cadastrado em</th>
                                 <th></th>
