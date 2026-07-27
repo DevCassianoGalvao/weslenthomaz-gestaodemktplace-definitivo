@@ -127,7 +127,7 @@ class Client
         return array_map('intval', $stmt->fetchAll(\PDO::FETCH_COLUMN));
     }
 
-    /** Marketplaces vinculados a este cliente (objetos completos, usados na matriz de lançamento). */
+    /** Todas as contas vinculadas ao cliente, usadas na matriz de lançamentos. */
     public static function marketplaces(int $clientId): array
     {
         $stmt = Database::connection()->prepare(
@@ -141,7 +141,7 @@ class Client
                     CONCAT(m.name, " - ", cma.account_name) AS name
              FROM client_marketplace_accounts cma
              INNER JOIN marketplaces m ON m.id = cma.marketplace_id
-             WHERE cma.client_id = :client_id AND cma.is_active = 1
+             WHERE cma.client_id = :client_id
              ORDER BY m.name, cma.account_name'
         );
         $stmt->execute(['client_id' => $clientId]);
