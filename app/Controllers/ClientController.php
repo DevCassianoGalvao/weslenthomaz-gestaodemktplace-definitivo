@@ -275,10 +275,19 @@ class ClientController
         }
 
         $tmpName = (string) ($file['tmp_name'] ?? '');
-        $finfo = finfo_open(FILEINFO_MIME_TYPE);
-        $mime = $finfo && is_uploaded_file($tmpName) ? finfo_file($finfo, $tmpName) : false;
-        if ($finfo) {
-            finfo_close($finfo);
+        if ($tmpName === '' || !is_uploaded_file($tmpName)) {
+            return [null, 'O arquivo enviado não pôde ser validado. Tente novamente.'];
+        }
+
+        $mime = false;
+        if (function_exists('finfo_open')) {
+            $finfo = finfo_open(FILEINFO_MIME_TYPE);
+            $mime = $finfo ? finfo_file($finfo, $tmpName) : false;
+            if ($finfo) {
+                finfo_close($finfo);
+            }
+        } elseif (function_exists('mime_content_type')) {
+            $mime = mime_content_type($tmpName);
         }
 
         $extensions = [
@@ -296,7 +305,11 @@ class ClientController
         }
 
         $safeSlug = preg_replace('/[^a-z0-9-]+/i', '-', $slug) ?: 'cliente';
-        $filename = trim($safeSlug, '-') . '-' . bin2hex(random_bytes(8)) . '.' . $extensions[$mime];
+        try {
+            $filename = trim($safeSlug, '-') . '-' . bin2hex(random_bytes(8)) . '.' . $extensions[$mime];
+        } catch (\Throwable $exception) {
+            return [null, 'Não foi possível gerar o nome do arquivo do logo.'];
+        }
         $target = $directory . DIRECTORY_SEPARATOR . $filename;
         if (!move_uploaded_file($tmpName, $target)) {
             return [null, 'Não foi possível salvar o logo enviado.'];

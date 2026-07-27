@@ -26,7 +26,7 @@ use App\Core\Icon;
                 <div class="content-header">
                     <div>
                         <h1><?= htmlspecialchars($client['name'], ENT_QUOTES, 'UTF-8') ?></h1>
-                        <p class="text-muted" style="margin-top:-12px;">Lançamentos por período</p>
+                        <p class="text-muted page-subtitle">Lançamentos por período</p>
                     </div>
                     <a href="<?= url('/clients/' . (int) $client['id'] . '/periods/new') ?>" class="btn-link">+ Novo período</a>
                 </div>

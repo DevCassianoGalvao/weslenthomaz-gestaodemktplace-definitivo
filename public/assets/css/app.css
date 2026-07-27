@@ -1024,6 +1024,158 @@ input:focus-visible {
   }
 }
 
+/* ---------- Refinamento de leitura e gráficos ---------- */
+
+.content > h1,
+.content-header h1,
+.client-heading h1 {
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.content > h1 {
+  margin-bottom: 24px;
+}
+
+.content-header > div {
+  min-width: 0;
+}
+
+.page-subtitle {
+  margin: 6px 0 0;
+  line-height: 1.4;
+}
+
+.content-header > .btn-link,
+.content-header > a {
+  flex: 0 0 auto;
+}
+
+.kpi-grid {
+  align-items: stretch;
+}
+
+.kpi-card {
+  min-width: 0;
+  min-height: 118px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.kpi-value {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.kpi-sub {
+  overflow-wrap: anywhere;
+}
+
+.chart-grid {
+  align-items: stretch;
+  gap: 20px;
+}
+
+.chart-card {
+  min-width: 0;
+  min-height: 370px;
+  padding: 22px 22px 16px;
+  overflow: hidden;
+}
+
+.chart-card h3 {
+  min-height: 22px;
+  margin-bottom: 10px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.chart-card > div[id^="chart-"] {
+  width: 100%;
+  min-height: 320px;
+}
+
+.apexcharts-canvas,
+.apexcharts-svg {
+  max-width: 100%;
+}
+
+.apexcharts-tooltip {
+  border-radius: 6px !important;
+}
+
+.dashboard-tabs-comparison {
+  margin-bottom: 22px;
+}
+
+.dashboard-tabs-comparison + h1 {
+  margin-bottom: 24px;
+}
+
+.client-hero-copy h2 {
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 900px) {
+  .kpi-grid {
+    gap: 12px;
+  }
+
+  .chart-card {
+    min-height: 360px;
+  }
+}
+
+@media (max-width: 800px) {
+  .content-header {
+    align-items: flex-start;
+  }
+
+  .content-header > .btn-link,
+  .content-header > a {
+    margin-top: 2px;
+  }
+
+  .chart-card {
+    min-height: 350px;
+    padding: 18px 14px 12px;
+  }
+}
+
+@media (max-width: 520px) {
+  .content {
+    padding: 24px 14px;
+  }
+
+  .kpi-card {
+    min-height: 104px;
+    padding: 16px;
+  }
+
+  .kpi-value {
+    font-size: 1.55rem;
+  }
+
+  .chart-card {
+    min-height: 340px;
+  }
+
+  .chart-card > div[id^="chart-"] {
+    min-height: 300px;
+  }
+
+  .dashboard-tabs {
+    gap: 14px;
+  }
+
+  .dashboard-tabs a {
+    font-size: .78rem;
+  }
+}
+
 @media (max-width: 520px) {
   body::before {
     height: 1px;

@@ -58,6 +58,10 @@ $router->get('/dashboard', [new HomeController(), 'dashboard'], [
     fn() => AuthMiddleware::handle(),
 ]);
 
+$router->get('/dashboard/comparativo', [new HomeController(), 'dashboard'], [
+    fn() => AuthMiddleware::handle(),
+]);
+
 $router->get('/dashboard/export', [new ExportController(), 'ownDashboard'], [
     fn() => AuthMiddleware::handle(),
     RoleMiddleware::only(['client']),

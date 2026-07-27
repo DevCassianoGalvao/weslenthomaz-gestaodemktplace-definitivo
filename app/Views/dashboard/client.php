@@ -131,7 +131,6 @@ $accentColor = (!empty($client['brand_color']) && preg_match('/^#[0-9a-fA-F]{6}$
                     <div class="client-hero-copy">
                         <div class="eyebrow">Identidade da empresa</div>
                         <h2><?= htmlspecialchars($client['name'], ENT_QUOTES, 'UTF-8') ?></h2>
-                        <p>Resultados consolidados dos seus marketplaces.</p>
                         <?php if (!empty($profileLinks) || !empty($client['whatsapp'])): ?>
                             <div class="client-links">
                                 <?php foreach ($profileLinks as $label => $href): ?>

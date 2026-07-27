@@ -40,6 +40,10 @@ foreach ($rows as $row) {
         <?php $active = 'dashboard'; require __DIR__ . '/../partials/sidebar.php'; ?>
         <main class="app-main">
             <div class="content">
+                <div class="dashboard-tabs dashboard-tabs-comparison">
+                    <a href="<?= url('/dashboard') ?>">Visão geral</a>
+                    <a href="<?= url('/dashboard/comparativo') ?>" class="nav-active">Comparativo entre clientes</a>
+                </div>
                 <h1>Comparativo entre clientes</h1>
 
                 <?php if (!$hasAnyData): ?>
@@ -121,7 +125,7 @@ foreach ($rows as $row) {
 
                     <script>
                         new ApexCharts(document.querySelector('#chart-comparativo-clientes'), {
-                            chart: { type: 'bar', height: 300, toolbar: { show: false }, fontFamily: 'Inter, sans-serif' },
+                            chart: { type: 'bar', height: 320, parentHeightOffset: 0, redrawOnParentResize: true, toolbar: { show: false }, fontFamily: 'Manrope, sans-serif' },
                             series: [{ name: 'Faturamento', data: <?= json_encode($chartValues) ?> }],
                             xaxis: {
                                 categories: <?= json_encode($chartLabels) ?>,
@@ -131,7 +135,7 @@ foreach ($rows as $row) {
                             },
                             grid: { borderColor: 'rgba(255, 255, 255, 0.06)', strokeDashArray: 3 },
                             colors: <?= json_encode($chartColors) ?>.map(harmonizeChartColor),
-                            plotOptions: { bar: { distributed: true, columnWidth: '50%', borderRadius: 4 } },
+                            plotOptions: { bar: { distributed: true, columnWidth: '48%', borderRadius: 3 } },
                             legend: { show: false },
                             dataLabels: { enabled: false },
                             yaxis: { labels: { style: { colors: '#8b93a7' }, formatter: function (v) { return Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); } } },

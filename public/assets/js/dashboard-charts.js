@@ -86,7 +86,7 @@ function renderDashboardCharts(evolution, distribution, comparativo, accentColor
 
     if (evolution.categories.length && document.getElementById('chart-evolution')) {
         new ApexCharts(document.querySelector('#chart-evolution'), {
-            chart: { type: 'area', height: 280, toolbar: { show: false }, fontFamily: 'Inter, sans-serif' },
+            chart: { type: 'area', height: 320, parentHeightOffset: 0, redrawOnParentResize: true, toolbar: { show: false }, fontFamily: 'Manrope, sans-serif' },
             series: [{ name: 'Faturamento', data: evolution.values }],
             xaxis: {
                 categories: evolution.categories,
@@ -111,14 +111,15 @@ function renderDashboardCharts(evolution, distribution, comparativo, accentColor
         var distributionTotal = distribution.values.reduce(function (a, b) { return a + b; }, 0);
 
         new ApexCharts(document.querySelector('#chart-distribution'), {
-            chart: { type: 'donut', height: 280, fontFamily: 'Inter, sans-serif' },
+            chart: { type: 'donut', height: 320, parentHeightOffset: 0, redrawOnParentResize: true, fontFamily: 'Manrope, sans-serif' },
             series: distribution.values,
             labels: distribution.labels,
             colors: distribution.colors.map(harmonizeChartColor),
-            legend: { position: 'bottom', labels: { colors: '#e5e7eb' }, markers: { radius: 4 } },
-            stroke: { colors: ['#10141f'], width: 2 },
+            legend: { position: 'bottom', horizontalAlign: 'center', fontSize: '12px', offsetY: 2, labels: { colors: '#f6f3eb' }, markers: { width: 8, height: 8, radius: 2 } },
+            stroke: { colors: ['#0d0d0d'], width: 2 },
             dataLabels: {
-                style: { fontSize: '13px', fontWeight: 600 },
+                enabled: false,
+                style: { fontSize: '12px', fontWeight: 600 },
                 dropShadow: { enabled: true, top: 1, left: 1, blur: 2, color: '#000', opacity: 0.6 },
             },
             plotOptions: {
@@ -146,13 +147,13 @@ function renderDashboardCharts(evolution, distribution, comparativo, accentColor
                     },
                 },
             },
-            tooltip: { theme: 'dark', fillSeriesColor: false, y: { formatter: function (v) { return formatBRL(v); } } },
+            tooltip: { theme: 'dark', fillSeriesColor: false, fixed: { enabled: true, position: 'topRight', offsetY: 8, offsetX: -8 }, y: { formatter: function (v) { return formatBRL(v); } } },
         }).render();
     }
 
     if (comparativo.series.length && document.getElementById('chart-comparativo')) {
         new ApexCharts(document.querySelector('#chart-comparativo'), {
-            chart: { type: 'bar', height: 300, toolbar: { show: false }, fontFamily: 'Inter, sans-serif' },
+            chart: { type: 'bar', height: 320, parentHeightOffset: 0, redrawOnParentResize: true, toolbar: { show: false }, fontFamily: 'Manrope, sans-serif' },
             series: comparativo.series,
             xaxis: {
                 categories: comparativo.categories,
@@ -163,8 +164,8 @@ function renderDashboardCharts(evolution, distribution, comparativo, accentColor
             grid: { borderColor: chartGridColor(), strokeDashArray: 3 },
             colors: comparativo.colors.map(harmonizeChartColor),
             dataLabels: { enabled: false },
-            plotOptions: { bar: { columnWidth: '60%', borderRadius: 4 } },
-            legend: { labels: { colors: '#e5e7eb' } },
+            plotOptions: { bar: { columnWidth: '52%', borderRadius: 3 } },
+            legend: { position: 'bottom', horizontalAlign: 'center', fontSize: '12px', labels: { colors: '#f6f3eb' }, markers: { width: 8, height: 8, radius: 2 } },
             yaxis: { labels: { style: { colors: '#8b93a7' }, formatter: function (v) { return formatBRL(v); } } },
             tooltip: { theme: 'dark', fillSeriesColor: false, y: { formatter: function (v) { return formatBRL(v); } } },
         }).render();
