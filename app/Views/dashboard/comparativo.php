@@ -61,7 +61,7 @@ foreach ($rows as $row) {
                         <a href="<?= url('/dashboard/comparativo/export' . ($selectedMonth ? '?month=' . urlencode($selectedMonth) : '')) ?>" class="btn-link" style="text-decoration:none;margin-left:auto;">Exportar Excel</a>
                     </form>
 
-                    <div class="kpi-grid" style="grid-template-columns:repeat(4, 1fr);">
+                    <div class="kpi-grid comparison-kpi-grid">
                         <div class="kpi-card">
                             <div class="kpi-label">Faturamento da carteira</div>
                             <div class="kpi-value" data-countup="<?= $portfolioValueCents / 100 ?>" data-format="currency"><?= Format::centsToBrl($portfolioValueCents) ?></div>
@@ -125,7 +125,7 @@ foreach ($rows as $row) {
 
                     <script>
                         new ApexCharts(document.querySelector('#chart-comparativo-clientes'), {
-                            chart: { type: 'bar', height: 320, parentHeightOffset: 0, redrawOnParentResize: true, toolbar: { show: false }, fontFamily: 'Manrope, sans-serif' },
+                            chart: { type: 'bar', height: 340, parentHeightOffset: 0, redrawOnParentResize: true, toolbar: { show: false }, fontFamily: 'Manrope, sans-serif' },
                             series: [{ name: 'Faturamento', data: <?= json_encode($chartValues) ?> }],
                             xaxis: {
                                 categories: <?= json_encode($chartLabels) ?>,
@@ -135,7 +135,7 @@ foreach ($rows as $row) {
                             },
                             grid: { borderColor: 'rgba(255, 255, 255, 0.06)', strokeDashArray: 3 },
                             colors: <?= json_encode($chartColors) ?>.map(harmonizeChartColor),
-                            plotOptions: { bar: { distributed: true, columnWidth: '48%', borderRadius: 3 } },
+                            plotOptions: { bar: { distributed: true, columnWidth: '42%', borderRadius: 3 } },
                             legend: { show: false },
                             dataLabels: { enabled: false },
                             yaxis: { labels: { style: { colors: '#8b93a7' }, formatter: function (v) { return Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); } } },

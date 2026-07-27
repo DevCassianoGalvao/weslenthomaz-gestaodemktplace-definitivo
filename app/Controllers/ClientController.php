@@ -279,23 +279,18 @@ class ClientController
             return [null, 'O arquivo enviado não pôde ser validado. Tente novamente.'];
         }
 
-        $mime = false;
-        if (function_exists('finfo_open')) {
-            $finfo = finfo_open(FILEINFO_MIME_TYPE);
-            $mime = $finfo ? finfo_file($finfo, $tmpName) : false;
-            if ($finfo) {
-                finfo_close($finfo);
-            }
-        } elseif (function_exists('mime_content_type')) {
-            $mime = mime_content_type($tmpName);
+        $imageInfo = @getimagesize($tmpName);
+        $imageTypes = [
+            IMAGETYPE_JPEG => ['extension' => 'jpg'],
+            IMAGETYPE_PNG => ['extension' => 'png'],
+        ];
+        if (defined('IMAGETYPE_WEBP')) {
+            $imageTypes[IMAGETYPE_WEBP] = ['extension' => 'webp'];
         }
 
-        $extensions = [
-            'image/jpeg' => 'jpg',
-            'image/png' => 'png',
-            'image/webp' => 'webp',
-        ];
-        if (!isset($extensions[$mime])) {
+        $detectedType = is_array($imageInfo) ? (int) ($imageInfo[2] ?? 0) : 0;
+        $imageType = $imageTypes[$detectedType] ?? null;
+        if (!$imageType) {
             return [null, 'Formato inválido. Envie PNG, JPG ou WEBP.'];
         }
 
@@ -306,7 +301,7 @@ class ClientController
 
         $safeSlug = preg_replace('/[^a-z0-9-]+/i', '-', $slug) ?: 'cliente';
         try {
-            $filename = trim($safeSlug, '-') . '-' . bin2hex(random_bytes(8)) . '.' . $extensions[$mime];
+            $filename = trim($safeSlug, '-') . '-' . bin2hex(random_bytes(8)) . '.' . $imageType['extension'];
         } catch (\Throwable $exception) {
             return [null, 'Não foi possível gerar o nome do arquivo do logo.'];
         }
