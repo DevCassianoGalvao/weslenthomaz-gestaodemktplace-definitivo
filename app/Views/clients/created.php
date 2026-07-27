@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Cliente criado - Gestão de Marketplaces</title>
+    <title>Cliente criado - Painel de métricas by Weslen Thomaz</title>
     <?php require __DIR__ . '/../partials/head-assets.php'; ?>
 </head>
 <body>

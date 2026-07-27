@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Login - Gestão de Marketplaces</title>
+    <title>Login - Painel de métricas by Weslen Thomaz</title>
     <?php require __DIR__ . '/../partials/head-assets.php'; ?>
 </head>
 <body>
     <div class="center-screen">
         <div class="card" id="login-card">
-            <h1>Gestão de Marketplaces</h1>
+            <h1>Painel de métricas <small>by Weslen Thomaz</small></h1>
 
             <?php if (!empty($error)): ?>
                 <div class="alert-error"><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></div>

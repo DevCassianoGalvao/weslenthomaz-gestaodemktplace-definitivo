@@ -7,7 +7,7 @@ $val = fn(string $key, string $default = '') => htmlspecialchars($old[$key] ?? $
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Marketplaces - Gestão de Marketplaces</title>
+    <title>Marketplaces - Painel de métricas by Weslen Thomaz</title>
     <?php require __DIR__ . '/../partials/head-assets.php'; ?>
 </head>
 <body>
@@ -32,7 +32,7 @@ $val = fn(string $key, string $default = '') => htmlspecialchars($old[$key] ?? $
                                 <td>
                                     <form method="post" action="<?= url('/marketplaces/' . (int) $marketplace['id'] . '/update') ?>" style="display:flex;gap:8px;align-items:center;">
                                         <?= \App\Core\Csrf::field() ?>
-                                        <input type="color" name="color" value="<?= htmlspecialchars($marketplace['color'] ?: '#4f7fff', ENT_QUOTES, 'UTF-8') ?>" style="width:42px;height:36px;padding:2px;">
+                                        <input type="color" name="color" value="<?= htmlspecialchars($marketplace['color'] ?: '#d6b25e', ENT_QUOTES, 'UTF-8') ?>" style="width:42px;height:36px;padding:2px;">
                                         <input type="text" name="name" value="<?= htmlspecialchars($marketplace['name'], ENT_QUOTES, 'UTF-8') ?>" required style="min-width:180px;">
                                         <button type="submit" class="btn-secondary">Salvar</button>
                                     </form>
@@ -65,7 +65,7 @@ $val = fn(string $key, string $default = '') => htmlspecialchars($old[$key] ?? $
                         </div>
                         <div class="field">
                             <label for="color">Cor</label>
-                            <input type="color" id="color" name="color" value="<?= $val('color', '#4f7fff') ?>">
+                            <input type="color" id="color" name="color" value="<?= $val('color', '#d6b25e') ?>">
                             <?php if (!empty($errors['color'])): ?><div class="field-error"><?= htmlspecialchars($errors['color'], ENT_QUOTES, 'UTF-8') ?></div><?php endif; ?>
                         </div>
                     </div>

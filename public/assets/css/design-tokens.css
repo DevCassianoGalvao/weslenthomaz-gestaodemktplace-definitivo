@@ -1,6 +1,6 @@
 /*
  * Design tokens — Gestão de Marketplaces
- * Direção visual: dark navy/black + blue.
+ * Direção visual: preto, ouro e branco.
  *
  * --accent-primary é o único token que varia por contexto:
  *  - Painel interno (admin/operador): sempre --accent-primary-default (azul fixo).
@@ -8,45 +8,46 @@
  *    (ver app/Views/partials/brand-style.php), mantendo o resto da paleta igual.
  */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap');
 
 :root {
   /* Superfícies */
-  --bg-base: #05070d;
-  --bg-surface: #10141f;
-  --bg-surface-hover: #161b2b;
-  --bg-inset: #0a0d15;
+  --bg-base: #050505;
+  --bg-surface: #0d0d0d;
+  --bg-surface-hover: #171717;
+  --bg-inset: #090909;
 
   /* Bordas */
-  --border-subtle: rgba(255, 255, 255, 0.06);
-  --border-strong: rgba(255, 255, 255, 0.12);
+  --border-subtle: rgba(255, 255, 255, 0.09);
+  --border-strong: rgba(214, 178, 94, 0.34);
 
   /* Marca / acento (ver nota acima) */
-  --accent-primary-default: #4f7fff;
+  --accent-primary-default: #d6b25e;
   --accent-primary: var(--accent-primary-default);
-  --accent-secondary: #6d5bff;
-  --accent-gradient: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  --accent-secondary: #f0d58a;
+  --accent-gradient: var(--accent-primary);
 
   /* Semânticas */
-  --success: #10b981;
-  --danger: #ef4444;
-  --warning: #f59e0b;
-  --neutral: #64748b;
+  --success: #6fcf97;
+  --danger: #ef8d8d;
+  --warning: #e0b65e;
+  --neutral: #7c7c7c;
 
   /* Texto */
-  --text-primary: #e5e7eb;
-  --text-muted: #8b93a7;
-  --text-faint: #5b6478;
+  --text-primary: #f6f3eb;
+  --text-muted: #aaa69d;
+  --text-faint: #726e66;
 
   /* Tipografia */
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-sans: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'DM Mono', 'SFMono-Regular', Consolas, monospace;
 
   /* Raio e sombra */
-  --radius-card: 16px;
-  --radius-control: 10px;
+  --radius-card: 10px;
+  --radius-control: 7px;
   --radius-pill: 999px;
   --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4);
-  --shadow-card-hover: 0 16px 32px -12px rgba(79, 127, 255, 0.28), 0 4px 12px rgba(0, 0, 0, 0.35);
+  --shadow-card-hover: 0 16px 32px -12px rgba(214, 178, 94, 0.2), 0 4px 12px rgba(0, 0, 0, 0.35);
   --shadow-popover: 0 20px 40px -12px rgba(0, 0, 0, 0.5);
 
   /* Layout */

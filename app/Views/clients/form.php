@@ -30,7 +30,7 @@ $accountRowsJson = json_encode(array_values(array_map(fn($account) => [
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><?= $isEdit ? 'Editar cliente' : 'Novo cliente' ?> - Gestão de Marketplaces</title>
+    <title><?= $isEdit ? 'Editar cliente' : 'Novo cliente' ?> - Painel de métricas by Weslen Thomaz</title>
     <?php require __DIR__ . '/../partials/head-assets.php'; ?>
 </head>
 <body>
@@ -40,7 +40,7 @@ $accountRowsJson = json_encode(array_values(array_map(fn($account) => [
             <div class="content">
                 <h1><?= $isEdit ? 'Editar cliente' : 'Novo cliente' ?></h1>
 
-                <form class="form-card" method="post" action="<?= url($isEdit ? '/clients/' . (int) $client['id'] . '/update' : '/clients') ?>">
+                <form class="form-card" method="post" enctype="multipart/form-data" action="<?= url($isEdit ? '/clients/' . (int) $client['id'] . '/update' : '/clients') ?>">
                     <?= \App\Core\Csrf::field() ?>
 
                     <div class="form-grid">
@@ -56,13 +56,30 @@ $accountRowsJson = json_encode(array_values(array_map(fn($account) => [
                         </div>
                         <div class="field">
                             <label for="brand_color">Cor da marca</label>
-                            <input type="color" id="brand_color" name="brand_color" value="<?= $val('brand_color', '#4f7fff') ?>">
+                            <input type="color" id="brand_color" name="brand_color" value="<?= $val('brand_color', '#d6b25e') ?>">
                             <?php if (!empty($errors['brand_color'])): ?><div class="field-error"><?= htmlspecialchars($errors['brand_color'], ENT_QUOTES, 'UTF-8') ?></div><?php endif; ?>
                         </div>
                         <div class="field">
                             <label for="logo_url">URL do logo (opcional)</label>
                             <input type="text" id="logo_url" name="logo_url" value="<?= $val('logo_url') ?>" placeholder="ex: empresa.com/logo.png">
                             <?php if (!empty($errors['logo_url'])): ?><div class="field-error"><?= htmlspecialchars($errors['logo_url'], ENT_QUOTES, 'UTF-8') ?></div><?php endif; ?>
+                        </div>
+                        <div class="field logo-upload-field" style="grid-column:1 / -1;">
+                            <div class="logo-upload">
+                                <div class="logo-preview">
+                                    <?php if (!empty($values['logo_url'])): ?>
+                                        <img src="<?= $val('logo_url') ?>" alt="Logo atual">
+                                    <?php else: ?>
+                                        <span>LOGO</span>
+                                    <?php endif; ?>
+                                </div>
+                                <div>
+                                    <label for="logo_file">Enviar arquivo do logo</label>
+                                    <input type="file" id="logo_file" name="logo_file" accept="image/png,image/jpeg,image/webp">
+                                    <p class="text-muted">PNG, JPG ou WEBP. Máximo de 3 MB. O arquivo enviado substitui a URL.</p>
+                                    <?php if (!empty($errors['logo_file'])): ?><div class="field-error"><?= htmlspecialchars($errors['logo_file'], ENT_QUOTES, 'UTF-8') ?></div><?php endif; ?>
+                                </div>
+                            </div>
                         </div>
                         <div class="field">
                             <label for="website_url">Site</label>

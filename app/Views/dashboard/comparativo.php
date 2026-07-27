@@ -20,7 +20,7 @@ foreach ($rows as $row) {
     if ($row['total_value_cents'] > 0) {
         $chartLabels[] = $row['client_name'];
         $chartValues[] = round($row['total_value_cents'] / 100, 2);
-        $chartColors[] = $row['brand_color'] ?: '#4f7fff';
+        $chartColors[] = $row['brand_color'] ?: '#d6b25e';
     }
 }
 ?>
@@ -29,7 +29,7 @@ foreach ($rows as $row) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Comparativo entre clientes - Gestão de Marketplaces</title>
+    <title>Comparativo entre clientes - Painel de métricas by Weslen Thomaz</title>
     <?php require __DIR__ . '/../partials/head-assets.php'; ?>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts@3"></script>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/ScrollTrigger.min.js"></script>
@@ -98,7 +98,7 @@ foreach ($rows as $row) {
                             <?php foreach ($rows as $row): ?>
                                 <tr>
                                     <td class="client-name">
-                                        <span style="display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;background:<?= htmlspecialchars($row['brand_color'] ?: '#4f7fff', ENT_QUOTES, 'UTF-8') ?>;"></span>
+                                        <span style="display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;background:<?= htmlspecialchars($row['brand_color'] ?: '#d6b25e', ENT_QUOTES, 'UTF-8') ?>;"></span>
                                         <?= htmlspecialchars($row['client_name'], ENT_QUOTES, 'UTF-8') ?>
                                     </td>
                                     <td><?= Format::centsToBrl($row['total_value_cents']) ?></td>

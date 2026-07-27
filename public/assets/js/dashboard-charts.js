@@ -70,7 +70,7 @@ function hslToHex(h, s, l) {
  */
 function harmonizeChartColor(hex) {
     if (!hex || hex[0] !== '#') {
-        return '#4f7fff';
+        return '#d6b25e';
     }
     var hsl = hexToHsl(hex);
     var s = Math.min(Math.max(hsl[1], 55), 68);
@@ -81,7 +81,7 @@ function harmonizeChartColor(hex) {
 function renderDashboardCharts(evolution, distribution, comparativo, accentColor) {
     if (!accentColor) {
         var computed = getComputedStyle(document.documentElement).getPropertyValue('--accent-primary');
-        accentColor = computed ? computed.trim() : '#4f7fff';
+        accentColor = computed ? computed.trim() : '#d6b25e';
     }
 
     if (evolution.categories.length && document.getElementById('chart-evolution')) {

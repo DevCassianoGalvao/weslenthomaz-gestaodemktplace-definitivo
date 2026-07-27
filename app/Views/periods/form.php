@@ -81,7 +81,7 @@ $action = url($isEdit ? '/periods/' . (int) $period['id'] . '/update' : '/client
                                     <template x-for="row in rows" :key="row.id">
                                         <tr>
                                             <td>
-                                                <span :style="'display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;background:' + (row.color || '#4f7fff')"></span>
+                                                <span :style="'display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;background:' + (row.color || '#d6b25e')"></span>
                                                 <span x-text="row.name"></span>
                                                 <input type="hidden" :name="'value_cents[' + row.id + ']'" :value="row.valueCents">
                                             </td>

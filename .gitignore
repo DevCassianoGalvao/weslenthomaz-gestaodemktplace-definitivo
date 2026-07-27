@@ -6,3 +6,6 @@ error_log
 .DS_Store
 Thumbs.db
 .env
+/public/uploads/clients/*
+!/public/uploads/clients/.gitkeep
+!/public/uploads/clients/.htaccess

@@ -10,7 +10,7 @@ $isAgency = Auth::isAdmin() || Auth::isOperator();
 <aside class="sidebar">
     <div class="sidebar-brand">
         <span class="sidebar-brand-mark"><?= Icon::svg('store', 18) ?></span>
-        <span class="sidebar-brand-text">Gestão de Marketplaces</span>
+        <span class="sidebar-brand-text">Painel de métricas <small>by Weslen Thomaz</small></span>
     </div>
 
     <nav class="sidebar-nav">

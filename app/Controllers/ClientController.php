@@ -39,6 +39,13 @@ class ClientController
         }
 
         [$data, $errors] = $this->validate($_POST);
+        [$uploadedLogo, $uploadError] = $this->handleLogoUpload($_FILES['logo_file'] ?? null, $data['slug']);
+        if ($uploadedLogo !== null) {
+            $data['logo_url'] = $uploadedLogo;
+        }
+        if ($uploadError !== null) {
+            $errors['logo_file'] = $uploadError;
+        }
         $marketplaceAccounts = $this->parseMarketplaceAccounts($_POST);
         if (empty($marketplaceAccounts)) {
             $errors['marketplace_accounts'] = 'Cadastre pelo menos uma conta de marketplace.';
@@ -121,6 +128,15 @@ class ClientController
         }
 
         [$data, $errors] = $this->validate($_POST, $clientId);
+        [$uploadedLogo, $uploadError] = $this->handleLogoUpload($_FILES['logo_file'] ?? null, $data['slug'], $client['logo_url'] ?? null);
+        if ($uploadedLogo !== null) {
+            $data['logo_url'] = $uploadedLogo;
+        } elseif (trim($_POST['logo_url'] ?? '') === '' && !empty($client['logo_url'])) {
+            $data['logo_url'] = $client['logo_url'];
+        }
+        if ($uploadError !== null) {
+            $errors['logo_file'] = $uploadError;
+        }
         $marketplaceAccounts = $this->parseMarketplaceAccounts($_POST);
         if (empty($marketplaceAccounts)) {
             $errors['marketplace_accounts'] = 'Cadastre pelo menos uma conta de marketplace.';
@@ -242,6 +258,51 @@ class ClientController
             $value = 'https://' . $value;
         }
         return $value;
+    }
+
+    private function handleLogoUpload(?array $file, string $slug, ?string $currentUrl = null): array
+    {
+        if (!$file || (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
+            return [null, null];
+        }
+
+        if ((int) ($file['error'] ?? UPLOAD_ERR_OK) !== UPLOAD_ERR_OK) {
+            return [null, 'Não foi possível receber o arquivo do logo.'];
+        }
+
+        if ((int) ($file['size'] ?? 0) > 3 * 1024 * 1024) {
+            return [null, 'O logo deve ter no máximo 3 MB.'];
+        }
+
+        $tmpName = (string) ($file['tmp_name'] ?? '');
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mime = $finfo && is_uploaded_file($tmpName) ? finfo_file($finfo, $tmpName) : false;
+        if ($finfo) {
+            finfo_close($finfo);
+        }
+
+        $extensions = [
+            'image/jpeg' => 'jpg',
+            'image/png' => 'png',
+            'image/webp' => 'webp',
+        ];
+        if (!isset($extensions[$mime])) {
+            return [null, 'Formato inválido. Envie PNG, JPG ou WEBP.'];
+        }
+
+        $directory = __DIR__ . '/../../public/uploads/clients';
+        if (!is_dir($directory) && !mkdir($directory, 0755, true) && !is_dir($directory)) {
+            return [null, 'Não foi possível preparar o armazenamento do logo.'];
+        }
+
+        $safeSlug = preg_replace('/[^a-z0-9-]+/i', '-', $slug) ?: 'cliente';
+        $filename = trim($safeSlug, '-') . '-' . bin2hex(random_bytes(8)) . '.' . $extensions[$mime];
+        $target = $directory . DIRECTORY_SEPARATOR . $filename;
+        if (!move_uploaded_file($tmpName, $target)) {
+            return [null, 'Não foi possível salvar o logo enviado.'];
+        }
+
+        return [url('/uploads/clients/' . $filename), null];
     }
 
     private function parseMarketplaceAccounts(array $input): array

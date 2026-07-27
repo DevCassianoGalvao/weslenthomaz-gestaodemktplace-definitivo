@@ -32,7 +32,7 @@ foreach ($marketplaceTotals as $row) {
     if ((int) $row['total_value_cents'] > 0) {
         $distributionLabels[] = $row['name'];
         $distributionValues[] = round(((int) $row['total_value_cents']) / 100, 2);
-        $distributionColors[] = $row['color'] ?: '#4f7fff';
+        $distributionColors[] = $row['color'] ?: '#d6b25e';
     }
 }
 
@@ -42,7 +42,7 @@ foreach ($marketplaceMatrix as $row) {
     if (!isset($byMarketplace[$mid])) {
         $byMarketplace[$mid] = [
             'name' => $row['name'],
-            'color' => $row['color'] ?: '#4f7fff',
+            'color' => $row['color'] ?: '#d6b25e',
             'data' => array_fill_keys($evolutionCategories, 0),
         ];
     }
@@ -66,14 +66,14 @@ krsort($monthGroups);
 
 $accentColor = (!empty($client['brand_color']) && preg_match('/^#[0-9a-fA-F]{6}$/', $client['brand_color']))
     ? $client['brand_color']
-    : '#4f7fff';
+    : '#d6b25e';
 ?>
 <!doctype html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Dashboard - <?= htmlspecialchars($client['name'], ENT_QUOTES, 'UTF-8') ?></title>
+    <title><?= htmlspecialchars($client['name'], ENT_QUOTES, 'UTF-8') ?> · Painel de métricas by Weslen Thomaz</title>
     <?php require __DIR__ . '/../partials/head-assets.php'; ?>
     <?php require __DIR__ . '/../partials/brand-style.php'; ?>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts@3"></script>
@@ -83,14 +83,17 @@ $accentColor = (!empty($client['brand_color']) && preg_match('/^#[0-9a-fA-F]{6}$
     <div class="app-shell">
         <?php $active = 'dashboard'; require __DIR__ . '/../partials/sidebar.php'; ?>
         <main class="app-main">
-            <div class="content">
+            <div class="content dashboard-page client-dashboard">
                 <?php if ($isInternal): ?>
                     <div class="dashboard-tabs">
                         <a href="<?= url('/clients/' . (int) $client['id'] . '/dashboard') ?>" class="nav-active">Visão do cliente</a>
                         <a href="<?= url('/dashboard') ?>">Comparativo entre clientes</a>
                     </div>
-                    <div class="content-header">
-                        <h1><?= htmlspecialchars($client['name'], ENT_QUOTES, 'UTF-8') ?></h1>
+                    <div class="content-header client-heading">
+                        <div>
+                            <div class="eyebrow">Painel de métricas <span>·</span> visão do cliente</div>
+                            <h1><?= htmlspecialchars($client['name'], ENT_QUOTES, 'UTF-8') ?></h1>
+                        </div>
                         <form method="get" action="">
                             <select name="client_id" onchange="fadeNavigate('<?= url('/clients') ?>/' + this.value + '/dashboard')">
                                 <?php foreach ($allClients as $c): ?>
@@ -102,7 +105,10 @@ $accentColor = (!empty($client['brand_color']) && preg_match('/^#[0-9a-fA-F]{6}$
                         </form>
                     </div>
                 <?php else: ?>
-                    <h1><?= htmlspecialchars($client['name'], ENT_QUOTES, 'UTF-8') ?></h1>
+                    <div class="client-heading">
+                        <div class="eyebrow">Painel de métricas <span>·</span> acompanhamento mensal</div>
+                        <h1><?= htmlspecialchars($client['name'], ENT_QUOTES, 'UTF-8') ?></h1>
+                    </div>
                 <?php endif; ?>
 
                 <?php
@@ -113,21 +119,30 @@ $accentColor = (!empty($client['brand_color']) && preg_match('/^#[0-9a-fA-F]{6}$
                         'TikTok' => $client['tiktok_url'] ?? null,
                     ]);
                 ?>
-                <?php if (!empty($client['logo_url']) || !empty($profileLinks) || !empty($client['whatsapp'])): ?>
-                    <div class="form-card" style="max-width:none;margin-bottom:20px;display:flex;align-items:center;gap:16px;">
+                <?php $clientInitials = strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', $client['name']), 0, 2)) ?: 'WT'; ?>
+                <section class="client-hero" aria-label="Identidade do cliente">
+                    <div class="client-hero-mark">
                         <?php if (!empty($client['logo_url'])): ?>
-                            <img src="<?= htmlspecialchars($client['logo_url'], ENT_QUOTES, 'UTF-8') ?>" alt="" style="width:56px;height:56px;object-fit:contain;border-radius:12px;background:var(--bg-inset);">
+                            <img src="<?= htmlspecialchars($client['logo_url'], ENT_QUOTES, 'UTF-8') ?>" alt="Logo de <?= htmlspecialchars($client['name'], ENT_QUOTES, 'UTF-8') ?>">
+                        <?php else: ?>
+                            <span><?= htmlspecialchars($clientInitials, ENT_QUOTES, 'UTF-8') ?></span>
                         <?php endif; ?>
-                        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
-                            <?php foreach ($profileLinks as $label => $href): ?>
-                                <a class="btn-secondary" href="<?= htmlspecialchars($href, ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener" style="text-decoration:none;display:inline-flex;align-items:center;"><?= htmlspecialchars($label, ENT_QUOTES, 'UTF-8') ?></a>
-                            <?php endforeach; ?>
-                            <?php if (!empty($client['whatsapp'])): ?>
-                                <span class="text-muted"><?= htmlspecialchars($client['whatsapp'], ENT_QUOTES, 'UTF-8') ?></span>
-                            <?php endif; ?>
-                        </div>
                     </div>
-                <?php endif; ?>
+                    <div class="client-hero-copy">
+                        <div class="eyebrow">Identidade da empresa</div>
+                        <h2><?= htmlspecialchars($client['name'], ENT_QUOTES, 'UTF-8') ?></h2>
+                        <p>Resultados consolidados dos seus marketplaces.</p>
+                        <?php if (!empty($profileLinks) || !empty($client['whatsapp'])): ?>
+                            <div class="client-links">
+                                <?php foreach ($profileLinks as $label => $href): ?>
+                                    <a href="<?= htmlspecialchars($href, ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener"><?= htmlspecialchars($label, ENT_QUOTES, 'UTF-8') ?></a>
+                                <?php endforeach; ?>
+                                <?php if (!empty($client['whatsapp'])): ?><span><?= htmlspecialchars($client['whatsapp'], ENT_QUOTES, 'UTF-8') ?></span><?php endif; ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                    <div class="client-hero-rule" aria-hidden="true"></div>
+                </section>
 
                 <?php if (!$hasAnyData): ?>
                     <div class="empty-state">
@@ -208,7 +223,7 @@ $accentColor = (!empty($client['brand_color']) && preg_match('/^#[0-9a-fA-F]{6}$
                                 <?php foreach ($kpis['marketplace_breakdown'] as $row): ?>
                                     <tr>
                                         <td>
-                                            <span style="display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;background:<?= htmlspecialchars($row['color'] ?: '#4f7fff', ENT_QUOTES, 'UTF-8') ?>;"></span>
+                                            <span style="display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;background:<?= htmlspecialchars($row['color'] ?: '#d6b25e', ENT_QUOTES, 'UTF-8') ?>;"></span>
                                             <?= htmlspecialchars($row['name'], ENT_QUOTES, 'UTF-8') ?>
                                         </td>
                                         <td><?= Format::centsToBrl($row['total_value_cents']) ?></td>
@@ -263,7 +278,7 @@ $accentColor = (!empty($client['brand_color']) && preg_match('/^#[0-9a-fA-F]{6}$
                                             <?php foreach ($period['entries'] as $entry): ?>
                                                 <tr>
                                                     <td>
-                                                        <span style="display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;background:<?= htmlspecialchars($entry['color'] ?: '#4f7fff', ENT_QUOTES, 'UTF-8') ?>;"></span>
+                                                        <span style="display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;background:<?= htmlspecialchars($entry['color'] ?: '#d6b25e', ENT_QUOTES, 'UTF-8') ?>;"></span>
                                                         <?= htmlspecialchars($entry['marketplace_name'], ENT_QUOTES, 'UTF-8') ?>
                                                     </td>
                                                     <td><?= htmlspecialchars($entry['account_name'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
