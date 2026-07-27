@@ -947,7 +947,8 @@ body::before {
 }
 
 .btn,
-.btn-primary {
+.btn-primary,
+.btn-link {
   background: var(--accent-primary);
   border-color: var(--accent-primary);
   color: #090909;
@@ -955,7 +956,8 @@ body::before {
 }
 
 .btn:hover,
-.btn-primary:hover {
+.btn-primary:hover,
+.btn-link:hover {
   background: var(--accent-secondary);
   border-color: var(--accent-secondary);
   color: #090909;
