@@ -1003,6 +1003,20 @@ input[type="file"] {
   border-radius: var(--radius-control);
 }
 
+input[type="date"] {
+  color-scheme: dark;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1) brightness(1.25);
+  opacity: .95;
+  cursor: pointer;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
 input[type="file"]::file-selector-button {
   margin-right: 8px;
   padding: 6px 9px;
