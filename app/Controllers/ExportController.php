@@ -8,6 +8,7 @@ use App\Models\Dashboard;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use PhpOffice\PhpSpreadsheet\Writer\Csv;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 /**
@@ -249,6 +250,19 @@ class ExportController
 
     private function stream(Spreadsheet $spreadsheet, string $filename): void
     {
+        if (!class_exists(\ZipArchive::class)) {
+            $csvFilename = preg_replace('/\.xlsx$/i', '.csv', $filename) ?: 'export.csv';
+            header('Content-Type: text/csv; charset=utf-8');
+            header('Content-Disposition: attachment; filename="' . $csvFilename . '"');
+            header('Cache-Control: max-age=0');
+
+            $writer = new Csv($spreadsheet);
+            $writer->setDelimiter(';');
+            $writer->setUseBOM(true);
+            $writer->save('php://output');
+            exit;
+        }
+
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         header('Content-Disposition: attachment; filename="' . $filename . '"');
         header('Cache-Control: max-age=0');
