@@ -128,6 +128,11 @@ try {
     );
     $log[] = "Historico antigo vinculado a contas: {$updatedHistory}.";
 
+    if (!index_exists($pdo, 'entries', 'idx_entries_period_id')) {
+        $pdo->exec('ALTER TABLE entries ADD INDEX idx_entries_period_id (period_id)');
+        $log[] = 'Indice idx_entries_period_id criado para manter a FK de periodos.';
+    }
+
     if (index_exists($pdo, 'entries', 'uniq_period_marketplace')) {
         $pdo->exec('ALTER TABLE entries DROP INDEX uniq_period_marketplace');
         $log[] = 'Indice antigo uniq_period_marketplace removido.';
