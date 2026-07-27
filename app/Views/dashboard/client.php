@@ -294,7 +294,7 @@ $accentColor = (!empty($client['brand_color']) && preg_match('/^#[0-9a-fA-F]{6}$
                         </details>
                     <?php endforeach; ?>
 
-                    <script src="<?= url('/assets/js/dashboard-charts.js') ?>"></script>
+                    <script src="<?= asset_url('/assets/js/dashboard-charts.js') ?>"></script>
                     <script>
                         renderDashboardCharts(
                             { categories: <?= json_encode($evolutionCategories) ?>, values: <?= json_encode($evolutionValues) ?> },

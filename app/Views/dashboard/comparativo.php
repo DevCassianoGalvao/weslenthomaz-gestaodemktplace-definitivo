@@ -33,7 +33,7 @@ foreach ($rows as $row) {
     <?php require __DIR__ . '/../partials/head-assets.php'; ?>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts@3"></script>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/ScrollTrigger.min.js"></script>
-    <script src="<?= url('/assets/js/dashboard-charts.js') ?>"></script>
+    <script src="<?= asset_url('/assets/js/dashboard-charts.js') ?>"></script>
 </head>
 <body>
     <div class="app-shell">
