@@ -14,10 +14,10 @@ por `url()`, então não precisa editar nenhum arquivo de código pra isso.
 
 Confira antes de começar (em "Selecionar Versão do PHP" / "MultiPHP Manager"):
 
-- **PHP 8.1 ou superior** selecionado pro domínio.
+- **PHP 8.2 ou superior** selecionado pro dominio.
 - Extensões ativas: `pdo_mysql`, `mbstring`, `zip`, `gd`, `curl`, `xml` (a maioria já vem ligada por padrão; confira `zip` especialmente — é comum vir desligada e é obrigatória pro PhpSpreadsheet gerar `.xlsx`).
 - **Git** disponível no servidor (cPanel → "Git Version Control" precisa disso; se a opção não aparecer no menu, a hospedagem não suporta e você usa o [Plano B](#plano-b-sem-git-version-control) no fim do guia).
-- Acesso a **Terminal** do cPanel (ou SSH) pra rodar `composer install` — sem isso, o passo 4 muda um pouco (explico a alternativa lá).
+- O repositorio ja inclui `vendor/`, entao o deploy nao depende de rodar Composer no servidor.
 
 ## 2. Criar o banco de dados MySQL
 
@@ -83,21 +83,18 @@ cliques no painel. Se quiser sincronização automática de verdade a cada push
 (via webhook do GitHub chamando a API do cPanel), isso dá pra configurar
 depois — é mais complexo e não é necessário pra colocar o sistema no ar hoje.
 
-## 4. Instalar as dependências (Composer)
+## 4. Dependencias PHP
 
-Se seu cPanel tem **Terminal** (cPanel → Advanced → Terminal):
+O repositorio definitivo ja versiona a pasta `vendor/` para evitar falhas de
+Composer em hospedagem compartilhada. Depois do deploy, confirme apenas que
+existe:
 
-```bash
-cd ~/gestorweslen.com.br/paineldemetricas
-composer install --no-dev --optimize-autoloader
+```txt
+gestorweslen.com.br/paineldemetricas/vendor/autoload.php
 ```
 
-Se não tiver Terminal/SSH: baixe o projeto com `composer install` rodado
-**localmente** (na sua máquina, dentro da pasta do projeto) e faça upload da
-pasta `vendor/` inteira via **File Manager** ou FTP pra dentro de
-`gestorweslen.com.br/paineldemetricas/vendor/`. É mais lento mas funciona igual
-(a pasta `vendor/` não muda com frequência, só quando você adiciona uma
-biblioteca nova).
+Se algum dia atualizar `composer.json`/`composer.lock`, rode Composer localmente
+e suba o `vendor/` atualizado no proximo commit.
 
 ## 5. Ativar a extensão zip do PHP
 
@@ -195,7 +192,7 @@ carregam normalmente (se algo vier sem estilo/quebrado, o suspeito nº 1 é o
 
 Se sua hospedagem não tiver a opção "Git Version Control" no cPanel, o
 caminho mais simples é: rodar `git clone` (ou baixar o ZIP do GitHub) na sua
-máquina, rodar `composer install` localmente, e subir a pasta inteira
-(exceto `.git/`) via **FTP** pra `gestorweslen.com.br/paineldemetricas/`. Pra
+maquina e subir a pasta inteira (exceto `.git/`) via **FTP** pra
+`gestorweslen.com.br/paineldemetricas/`. Pra
 atualizar depois, repete o processo ou usa um cliente FTP com sincronização
 (FileZilla tem isso). Menos elegante que o Git, mas funciona igual.

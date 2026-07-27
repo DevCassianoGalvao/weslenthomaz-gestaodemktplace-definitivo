@@ -1,17 +1,13 @@
-# Bridge de subpasta: quando o document root do domínio é a raiz do projeto
-# (ex: cassianogalvao.com.br/weslenmarketplaces, sem subdomínio dedicado),
-# este arquivo expõe /public como se fosse a raiz do site — sem "/public/"
-# aparecer na URL — e bloqueia acesso direto a app/config/database/vendor.
-#
-# Se o document root já aponta direto pra /public (subdomínio dedicado),
-# esta pasta fica fora da árvore do docroot e o Apache nunca lê este arquivo.
+# Subfolder bridge: when domain document root is project root,
+# this exposes /public as site root and blocks direct access
+# to sensitive project folders/files.
 
 RewriteEngine On
 
-# Nunca expõe pastas/arquivos sensíveis, mesmo com URL direta
+RewriteRule ^\.git(/|$) - [F,L]
 RewriteRule ^(app|config|database|vendor)(/|$) - [F,L]
 RewriteRule ^composer\.(json|lock)$ - [F,L]
 RewriteRule ^\.env$ - [F,L]
 
-# Tudo mais é servido a partir de /public (roteamento interno, sem redirect visível)
+# Serve everything else from /public without visible redirect.
 RewriteRule ^(.*)$ public/$1 [L]
