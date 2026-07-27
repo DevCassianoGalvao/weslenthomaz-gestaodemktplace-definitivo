@@ -43,7 +43,8 @@ function animateDashboardEntrance() {
         return;
     }
 
-    gsap.from('.kpi-card', { opacity: 0, y: 16, duration: 0.5, stagger: 0.08, ease: 'power2.out' });
+    // KPI cards keep their grid position during the entrance animation.
+    gsap.from('.kpi-card', { opacity: 0, duration: 0.35, stagger: 0.04, ease: 'power2.out' });
 
     if (typeof ScrollTrigger !== 'undefined') {
         gsap.registerPlugin(ScrollTrigger);

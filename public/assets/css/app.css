@@ -1075,6 +1075,10 @@ input:focus-visible {
   justify-content: flex-start;
 }
 
+.kpi-card:hover {
+  transform: none;
+}
+
 .comparison-kpi-grid {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
