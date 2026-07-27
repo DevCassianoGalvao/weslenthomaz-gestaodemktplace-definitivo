@@ -98,6 +98,8 @@ $adminOnly = [
     RoleMiddleware::only(['admin']),
 ];
 
+$router->post('/clients/{id}/delete', [new ClientController(), 'delete'], $adminOnly);
+
 $router->get('/history', [new HistoryController(), 'index'], $adminOnly);
 $router->get('/history/export', [new HistoryController(), 'exportCsv'], $adminOnly);
 $router->post('/history/clear-client', [new HistoryController(), 'clearClient'], $adminOnly);

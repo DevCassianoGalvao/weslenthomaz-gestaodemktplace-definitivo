@@ -6,16 +6,37 @@ use App\Core\Database;
 
 class Client
 {
-    public static function all(): array
+    public static function all(bool $activeOnly = false): array
     {
+        $where = $activeOnly ? "WHERE c.status = 'active'" : '';
         return Database::connection()->query(
             'SELECT c.id, c.name, c.slug, c.logo_url, c.brand_color, c.status, c.created_at,
                     COUNT(cma.id) AS marketplace_count
              FROM clients c
              LEFT JOIN client_marketplace_accounts cma ON cma.client_id = c.id AND cma.is_active = 1
+             ' . $where . '
              GROUP BY c.id
              ORDER BY c.name'
         )->fetchAll();
+    }
+
+    public static function delete(int $id): void
+    {
+        $pdo = Database::connection();
+        $pdo->beginTransaction();
+        try {
+            $pdo->prepare('DELETE FROM entry_history WHERE client_id = :client_id')->execute(['client_id' => $id]);
+            $pdo->prepare('DELETE e FROM entries e INNER JOIN periods p ON p.id = e.period_id WHERE p.client_id = :client_id')->execute(['client_id' => $id]);
+            $pdo->prepare('DELETE FROM periods WHERE client_id = :client_id')->execute(['client_id' => $id]);
+            $pdo->prepare('DELETE FROM client_marketplaces WHERE client_id = :client_id')->execute(['client_id' => $id]);
+            $pdo->prepare('DELETE FROM client_marketplace_accounts WHERE client_id = :client_id')->execute(['client_id' => $id]);
+            $pdo->prepare('DELETE FROM users WHERE client_id = :client_id')->execute(['client_id' => $id]);
+            $pdo->prepare('DELETE FROM clients WHERE id = :id')->execute(['id' => $id]);
+            $pdo->commit();
+        } catch (\Throwable $e) {
+            $pdo->rollBack();
+            throw $e;
+        }
     }
 
     public static function find(int $id): ?array

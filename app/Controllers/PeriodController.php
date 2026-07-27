@@ -176,7 +176,8 @@ class PeriodController
         if ($referenceMonth === '' && $this->isValidDate($startDate)) {
             $referenceMonth = Period::suggestReferenceMonth($startDate);
         }
-        if (!preg_match('/^\d{4}-\d{2}$/', $referenceMonth)) {
+        $referenceYear = (int) substr($referenceMonth, 0, 4);
+        if (!preg_match('/^\d{4}-\d{2}$/', $referenceMonth) || $referenceYear < 2000 || $referenceYear > 2100) {
             $errors['reference_month'] = 'Competência inválida — use o formato AAAA-MM.';
         }
 

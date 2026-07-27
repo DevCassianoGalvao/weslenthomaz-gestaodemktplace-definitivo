@@ -258,7 +258,10 @@ class Dashboard
     public static function allReferenceMonths(): array
     {
         $stmt = Database::connection()->query(
-            'SELECT DISTINCT reference_month FROM periods ORDER BY reference_month DESC'
+            "SELECT DISTINCT p.reference_month
+             FROM periods p
+             INNER JOIN clients c ON c.id = p.client_id AND c.status = 'active'
+             ORDER BY p.reference_month DESC"
         );
 
         return array_map('strval', $stmt->fetchAll(\PDO::FETCH_COLUMN));
@@ -274,7 +277,7 @@ class Dashboard
         $previous = self::totalsByClientForMonth(self::previousMonth($month));
 
         $rows = [];
-        foreach (Client::all() as $client) {
+        foreach (Client::all(true) as $client) {
             $clientId = (int) $client['id'];
             $cur = $current[$clientId] ?? ['value' => 0, 'orders' => 0];
             $prev = $previous[$clientId] ?? null;

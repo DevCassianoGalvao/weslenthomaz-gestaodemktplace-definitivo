@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS clients (
   tiktok_url VARCHAR(255) NULL,
   whatsapp VARCHAR(40) NULL,
   notes VARCHAR(255) NULL,
-  status ENUM('active','paused','archived') DEFAULT 'active',
+  status ENUM('active','paused') DEFAULT 'active',
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 

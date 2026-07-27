@@ -10,6 +10,7 @@
  * @var array|null $accountUser
  */
 $isEdit = $mode === 'edit';
+$accountUser = $accountUser ?? null;
 $values = array_merge($client ?? [], $old ?? []);
 $val = fn(string $key, string $default = '') => htmlspecialchars($values[$key] ?? $default, ENT_QUOTES, 'UTF-8');
 $marketplaceAccounts = $marketplaceAccounts ?? [];
@@ -60,27 +61,27 @@ $accountRowsJson = json_encode(array_values(array_map(fn($account) => [
                         </div>
                         <div class="field">
                             <label for="logo_url">URL do logo (opcional)</label>
-                            <input type="url" id="logo_url" name="logo_url" value="<?= $val('logo_url') ?>" placeholder="https://...">
+                            <input type="text" id="logo_url" name="logo_url" value="<?= $val('logo_url') ?>" placeholder="ex: empresa.com/logo.png">
                             <?php if (!empty($errors['logo_url'])): ?><div class="field-error"><?= htmlspecialchars($errors['logo_url'], ENT_QUOTES, 'UTF-8') ?></div><?php endif; ?>
                         </div>
                         <div class="field">
                             <label for="website_url">Site</label>
-                            <input type="url" id="website_url" name="website_url" value="<?= $val('website_url') ?>" placeholder="https://...">
+                            <input type="text" id="website_url" name="website_url" value="<?= $val('website_url') ?>" placeholder="ex: empresa.com.br">
                             <?php if (!empty($errors['website_url'])): ?><div class="field-error"><?= htmlspecialchars($errors['website_url'], ENT_QUOTES, 'UTF-8') ?></div><?php endif; ?>
                         </div>
                         <div class="field">
                             <label for="instagram_url">Instagram</label>
-                            <input type="url" id="instagram_url" name="instagram_url" value="<?= $val('instagram_url') ?>" placeholder="https://instagram.com/...">
+                            <input type="text" id="instagram_url" name="instagram_url" value="<?= $val('instagram_url') ?>" placeholder="instagram.com/empresa">
                             <?php if (!empty($errors['instagram_url'])): ?><div class="field-error"><?= htmlspecialchars($errors['instagram_url'], ENT_QUOTES, 'UTF-8') ?></div><?php endif; ?>
                         </div>
                         <div class="field">
                             <label for="facebook_url">Facebook</label>
-                            <input type="url" id="facebook_url" name="facebook_url" value="<?= $val('facebook_url') ?>" placeholder="https://facebook.com/...">
+                            <input type="text" id="facebook_url" name="facebook_url" value="<?= $val('facebook_url') ?>" placeholder="facebook.com/empresa">
                             <?php if (!empty($errors['facebook_url'])): ?><div class="field-error"><?= htmlspecialchars($errors['facebook_url'], ENT_QUOTES, 'UTF-8') ?></div><?php endif; ?>
                         </div>
                         <div class="field">
                             <label for="tiktok_url">TikTok</label>
-                            <input type="url" id="tiktok_url" name="tiktok_url" value="<?= $val('tiktok_url') ?>" placeholder="https://tiktok.com/@...">
+                            <input type="text" id="tiktok_url" name="tiktok_url" value="<?= $val('tiktok_url') ?>" placeholder="tiktok.com/@empresa">
                             <?php if (!empty($errors['tiktok_url'])): ?><div class="field-error"><?= htmlspecialchars($errors['tiktok_url'], ENT_QUOTES, 'UTF-8') ?></div><?php endif; ?>
                         </div>
                         <div class="field">
@@ -88,14 +89,14 @@ $accountRowsJson = json_encode(array_values(array_map(fn($account) => [
                             <input type="text" id="whatsapp" name="whatsapp" value="<?= $val('whatsapp') ?>" placeholder="+55...">
                         </div>
                         <div class="field" style="grid-column:1 / -1;">
-                            <label for="notes">ObservaÃ§Ãµes internas</label>
+                            <label for="notes">Observações internas</label>
                             <input type="text" id="notes" name="notes" value="<?= $val('notes') ?>">
                         </div>
                         <?php if ($isEdit): ?>
                             <div class="field">
                                 <label for="status">Status</label>
                                 <select id="status" name="status">
-                                    <?php foreach (['active' => 'Ativo', 'paused' => 'Pausado', 'archived' => 'Arquivado'] as $value => $label): ?>
+                                    <?php foreach (['active' => 'Ativo', 'paused' => 'Pausado'] as $value => $label): ?>
                                         <option value="<?= $value ?>" <?= ($values['status'] ?? 'active') === $value ? 'selected' : '' ?>><?= $label ?></option>
                                     <?php endforeach; ?>
                                 </select>
@@ -137,17 +138,33 @@ $accountRowsJson = json_encode(array_values(array_map(fn($account) => [
                         <p class="text-muted">A senha inicial é gerada automaticamente pelo sistema e exibida uma única vez após salvar.</p>
                     <?php elseif ($accountUser): ?>
                         <div class="section-title">Conta de acesso</div>
-                        <p class="text-muted" style="font-size:0.9rem;">
-                            <?= htmlspecialchars($accountUser['name'], ENT_QUOTES, 'UTF-8') ?>
-                            &lt;<?= htmlspecialchars($accountUser['email'], ENT_QUOTES, 'UTF-8') ?>&gt;
-                        </p>
+                        <div class="form-grid">
+                            <div class="field">
+                                <label for="account_email">E-mail de login</label>
+                                <input type="email" id="account_email" name="account_email" value="<?= htmlspecialchars($accountUser['email'] ?? '', ENT_QUOTES, 'UTF-8') ?>" required>
+                                <?php if (!empty($errors['account_email'])): ?><div class="field-error"><?= htmlspecialchars($errors['account_email'], ENT_QUOTES, 'UTF-8') ?></div><?php endif; ?>
+                            </div>
+                            <div class="field">
+                                <label for="account_password">Nova senha (opcional)</label>
+                                <input type="password" id="account_password" name="account_password" minlength="8" placeholder="deixe vazio para manter">
+                                <?php if (!empty($errors['account_password'])): ?><div class="field-error"><?= htmlspecialchars($errors['account_password'], ENT_QUOTES, 'UTF-8') ?></div><?php endif; ?>
+                            </div>
+                        </div>
                     <?php endif; ?>
 
                     <div class="form-actions">
                         <button type="submit" class="btn"><?= $isEdit ? 'Salvar alterações' : 'Criar cliente' ?></button>
                         <a href="<?= url('/clients') ?>" class="btn-secondary" style="text-decoration:none;display:inline-flex;align-items:center;">Cancelar</a>
+                        <?php if ($isEdit && \App\Core\Auth::isAdmin()): ?>
+                            <button type="submit" form="delete-client-form" class="btn-secondary" style="color:var(--danger);margin-left:auto;" onclick="return confirm('Excluir este cliente e todos os lançamentos? Essa ação não pode ser desfeita.');">Excluir cliente</button>
+                        <?php endif; ?>
                     </div>
                 </form>
+                <?php if ($isEdit && \App\Core\Auth::isAdmin()): ?>
+                    <form id="delete-client-form" method="post" action="<?= url('/clients/' . (int) $client['id'] . '/delete') ?>">
+                        <?= \App\Core\Csrf::field() ?>
+                    </form>
+                <?php endif; ?>
             </div>
         </main>
     </div>

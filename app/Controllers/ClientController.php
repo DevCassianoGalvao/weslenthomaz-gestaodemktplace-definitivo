@@ -127,8 +127,20 @@ class ClientController
         }
 
         $status = $_POST['status'] ?? 'active';
-        if (!in_array($status, ['active', 'paused', 'archived'], true)) {
+        if (!in_array($status, ['active', 'paused'], true)) {
             $errors['status'] = 'Status inválido.';
+        }
+
+        $accountUser = Client::accountUser($clientId);
+        $accountEmail = trim($_POST['account_email'] ?? ($accountUser['email'] ?? ''));
+        $accountPassword = (string) ($_POST['account_password'] ?? '');
+        if ($accountUser && ($accountEmail === '' || !filter_var($accountEmail, FILTER_VALIDATE_EMAIL))) {
+            $errors['account_email'] = 'Informe um e-mail válido para a conta de acesso.';
+        } elseif ($accountUser && User::emailExistsExcept($accountEmail, (int) $accountUser['id'])) {
+            $errors['account_email'] = 'Já existe uma conta com este e-mail.';
+        }
+        if ($accountPassword !== '' && strlen($accountPassword) < 8) {
+            $errors['account_password'] = 'A nova senha deve ter pelo menos 8 caracteres.';
         }
 
         if (!empty($errors)) {
@@ -140,15 +152,36 @@ class ClientController
                 'marketplaces' => Marketplace::allActive(),
                 'errors' => $errors,
                 'old' => [],
-                'accountUser' => Client::accountUser($clientId),
+                'accountUser' => array_merge($accountUser ?? [], ['email' => $accountEmail]),
             ]);
             return;
         }
 
         Client::update($clientId, $data['name'], $data['slug'], $data['logo_url'], $data['brand_color'], $status, $data);
         Client::syncMarketplaceAccounts($clientId, $marketplaceAccounts);
+        if ($accountUser) {
+            User::updateCredentials((int) $accountUser['id'], $accountEmail, $accountPassword !== '' ? $accountPassword : null);
+        }
 
         header('Location: ' . url('/clients'));
+        exit;
+    }
+
+    public function delete(string $id): void
+    {
+        $clientId = (int) $id;
+        if (!Client::find($clientId)) {
+            http_response_code(404);
+            require __DIR__ . '/../Views/errors/404.php';
+            return;
+        }
+        if (!Csrf::verify($_POST['csrf_token'] ?? null)) {
+            http_response_code(400);
+            echo 'Sessão expirada, volte e tente novamente.';
+            return;
+        }
+        Client::delete($clientId);
+        header('Location: ' . url('/clients?deleted=1'));
         exit;
     }
 
@@ -174,15 +207,15 @@ class ClientController
             $errors['brand_color'] = 'Cor inválida — use o formato #RRGGBB.';
         }
 
-        $logoUrl = trim($input['logo_url'] ?? '');
+        $logoUrl = $this->normalizeUrl($input['logo_url'] ?? '');
         if ($logoUrl !== '' && !filter_var($logoUrl, FILTER_VALIDATE_URL)) {
             $errors['logo_url'] = 'URL do logo inválida.';
         }
 
         foreach (['website_url', 'instagram_url', 'facebook_url', 'tiktok_url'] as $field) {
-            $value = trim($input[$field] ?? '');
+            $value = $this->normalizeUrl($input[$field] ?? '');
             if ($value !== '' && !filter_var($value, FILTER_VALIDATE_URL)) {
-                $errors[$field] = 'URL invalida.';
+                $errors[$field] = 'URL inválida.';
             }
         }
 
@@ -191,15 +224,24 @@ class ClientController
             'slug' => $slug,
             'logo_url' => $logoUrl,
             'brand_color' => $brandColor,
-            'website_url' => trim($input['website_url'] ?? ''),
-            'instagram_url' => trim($input['instagram_url'] ?? ''),
-            'facebook_url' => trim($input['facebook_url'] ?? ''),
-            'tiktok_url' => trim($input['tiktok_url'] ?? ''),
+            'website_url' => $this->normalizeUrl($input['website_url'] ?? ''),
+            'instagram_url' => $this->normalizeUrl($input['instagram_url'] ?? ''),
+            'facebook_url' => $this->normalizeUrl($input['facebook_url'] ?? ''),
+            'tiktok_url' => $this->normalizeUrl($input['tiktok_url'] ?? ''),
             'whatsapp' => trim($input['whatsapp'] ?? ''),
             'notes' => trim($input['notes'] ?? ''),
         ];
 
         return [$data, $errors];
+    }
+
+    private function normalizeUrl(string $value): string
+    {
+        $value = trim($value);
+        if ($value !== '' && !preg_match('#^[a-z][a-z0-9+.-]*://#i', $value)) {
+            $value = 'https://' . $value;
+        }
+        return $value;
     }
 
     private function parseMarketplaceAccounts(array $input): array

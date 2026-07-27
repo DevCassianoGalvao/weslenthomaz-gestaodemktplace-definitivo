@@ -53,6 +53,25 @@ class User
         return (int) $stmt->fetchColumn() > 0;
     }
 
+    public static function updateCredentials(int $id, string $email, ?string $password = null): void
+    {
+        $sql = 'UPDATE users SET email = :email';
+        $params = ['email' => $email, 'id' => $id];
+        if ($password !== null && $password !== '') {
+            $sql .= ', password_hash = :password_hash';
+            $params['password_hash'] = password_hash($password, PASSWORD_BCRYPT);
+        }
+        $sql .= ' WHERE id = :id';
+        Database::connection()->prepare($sql)->execute($params);
+    }
+
+    public static function emailExistsExcept(string $email, int $userId): bool
+    {
+        $stmt = Database::connection()->prepare('SELECT COUNT(*) FROM users WHERE email = :email AND id != :id');
+        $stmt->execute(['email' => $email, 'id' => $userId]);
+        return (int) $stmt->fetchColumn() > 0;
+    }
+
     /** Senha inicial gerada pelo sistema (PRD 5.3) — evita caracteres ambíguos (0/O, 1/l/I). */
     public static function generatePassword(int $length = 12): string
     {

@@ -40,8 +40,9 @@
                                     </td>
                                     <td><?= (int) $client['marketplace_count'] ?></td>
                                     <td>
+                                        <?php $statusLabel = $client['status'] === 'active' ? 'Ativo' : 'Pausado'; ?>
                                         <span class="badge badge-<?= htmlspecialchars($client['status'], ENT_QUOTES, 'UTF-8') ?>">
-                                            <span class="badge-dot"></span><?= htmlspecialchars($client['status'], ENT_QUOTES, 'UTF-8') ?>
+                                            <span class="badge-dot"></span><?= $statusLabel ?>
                                         </span>
                                     </td>
                                     <td><?= htmlspecialchars(date('d/m/Y', strtotime($client['created_at'])), ENT_QUOTES, 'UTF-8') ?></td>
