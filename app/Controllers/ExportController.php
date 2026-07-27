@@ -250,24 +250,34 @@ class ExportController
 
     private function stream(Spreadsheet $spreadsheet, string $filename): void
     {
-        if (!class_exists(\ZipArchive::class)) {
-            $csvFilename = preg_replace('/\.xlsx$/i', '.csv', $filename) ?: 'export.csv';
-            header('Content-Type: text/csv; charset=utf-8');
-            header('Content-Disposition: attachment; filename="' . $csvFilename . '"');
-            header('Cache-Control: max-age=0');
+        if (class_exists(\ZipArchive::class)) {
+            $temporaryFile = tempnam(sys_get_temp_dir(), 'marketplace-export-');
 
-            $writer = new Csv($spreadsheet);
-            $writer->setDelimiter(';');
-            $writer->setUseBOM(true);
-            $writer->save('php://output');
-            exit;
+            if ($temporaryFile !== false) {
+                try {
+                    $writer = new Xlsx($spreadsheet);
+                    $writer->save($temporaryFile);
+
+                    header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+                    header('Content-Disposition: attachment; filename="' . $filename . '"');
+                    header('Cache-Control: max-age=0');
+                    readfile($temporaryFile);
+                    @unlink($temporaryFile);
+                    exit;
+                } catch (\Throwable $exception) {
+                    @unlink($temporaryFile);
+                }
+            }
         }
 
-        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        $csvFilename = preg_replace('/\.xlsx$/i', '.csv', $filename) ?: 'export.csv';
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename="' . $csvFilename . '"');
         header('Cache-Control: max-age=0');
 
-        $writer = new Xlsx($spreadsheet);
+        $writer = new Csv($spreadsheet);
+        $writer->setDelimiter(';');
+        $writer->setUseBOM(true);
         $writer->save('php://output');
         exit;
     }
