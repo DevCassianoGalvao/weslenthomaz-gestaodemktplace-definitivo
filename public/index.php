@@ -50,6 +50,13 @@ $router->get('/login', [new AuthController(), 'showLogin']);
 $router->post('/login', [new AuthController(), 'login']);
 $router->post('/logout', [new AuthController(), 'logout']);
 
+$authenticated = [
+    fn() => AuthMiddleware::handle(),
+];
+
+$router->get('/account', [new AuthController(), 'account'], $authenticated);
+$router->post('/account', [new AuthController(), 'updateAccount'], $authenticated);
+
 $router->get('/', [new HomeController(), 'index'], [
     fn() => AuthMiddleware::handle(),
 ]);

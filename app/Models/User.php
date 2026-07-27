@@ -29,6 +29,17 @@ class User
         return $user ?: null;
     }
 
+    public static function findByIdWithPassword(int $id): ?array
+    {
+        $stmt = Database::connection()->prepare(
+            'SELECT id, name, email, password_hash, role, client_id FROM users WHERE id = :id LIMIT 1'
+        );
+        $stmt->execute(['id' => $id]);
+        $user = $stmt->fetch();
+
+        return $user ?: null;
+    }
+
     public static function create(string $name, string $email, string $password, string $role, ?int $clientId = null): int
     {
         $stmt = Database::connection()->prepare(

@@ -187,6 +187,25 @@ a { color: inherit; }
   text-transform: capitalize;
 }
 
+.sidebar-account-link {
+  display: inline-block;
+  margin-top: 4px;
+  color: var(--accent-primary);
+  font-size: .72rem;
+  text-decoration: none;
+}
+
+.sidebar-account-link:hover,
+.sidebar-account-link:focus-visible {
+  color: var(--accent-secondary);
+  text-decoration: underline;
+}
+
+.account-form {
+  width: 100%;
+  max-width: 720px;
+}
+
 .sidebar-logout {
   display: flex;
   align-items: center;

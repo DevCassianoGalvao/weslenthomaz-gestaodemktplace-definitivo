@@ -40,7 +40,7 @@ $isAgency = Auth::isAdmin() || Auth::isOperator();
     <div class="sidebar-footer">
         <div class="sidebar-user">
             <div class="sidebar-user-name"><?= htmlspecialchars(Auth::name(), ENT_QUOTES, 'UTF-8') ?></div>
-            <div class="sidebar-user-role"><span class="badge-dot"></span><?= htmlspecialchars(Auth::role(), ENT_QUOTES, 'UTF-8') ?></div>
+            <a class="sidebar-account-link" href="<?= url('/account') ?>">Minha conta</a>
         </div>
         <form method="post" action="<?= url('/logout') ?>">
             <?= Csrf::field() ?>
