@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Core\Csrf;
+use App\Core\Database;
 use App\Core\View;
 use App\Models\Client;
 use App\Models\Marketplace;
@@ -76,7 +77,7 @@ class MarketplaceController
     {
         if (!Csrf::verify($_POST['csrf_token'] ?? null)) {
             http_response_code(400);
-            echo 'SessÃ£o expirada, volte e tente novamente.';
+            echo 'Sessao expirada, volte e tente novamente.';
             return;
         }
 
@@ -89,17 +90,35 @@ class MarketplaceController
             $errors['name'] = 'Informe o nome do marketplace.';
         }
         if ($color !== '' && !preg_match('/^#[0-9a-fA-F]{6}$/', $color)) {
-            $errors['color'] = 'Cor invÃ¡lida â€” use o formato #RRGGBB.';
+            $errors['color'] = 'Cor invalida - use o formato #RRGGBB.';
         }
 
         $slug = Client::slugify($name);
-        if ($slug !== '' && Marketplace::slugExists($slug, $marketplaceId)) {
-            $errors['name'] = 'JÃ¡ existe outro marketplace com esse nome.';
+        if ($slug !== '') {
+            $stmt = Database::connection()->prepare('SELECT COUNT(*) FROM marketplaces WHERE slug = :slug AND id != :id');
+            $stmt->execute(['slug' => $slug, 'id' => $marketplaceId]);
+            if ((int) $stmt->fetchColumn() > 0) {
+                $errors['name'] = 'Ja existe outro marketplace com esse nome.';
+            }
         }
 
-        if (empty($errors)) {
-            Marketplace::update($marketplaceId, $name, $slug, $color ?: null);
+        if (!empty($errors)) {
+            View::render('marketplaces/index', [
+                'marketplaces' => Marketplace::all(),
+                'errors' => $errors,
+                'old' => [],
+            ]);
+            return;
         }
+
+        Database::connection()->prepare(
+            'UPDATE marketplaces SET name = :name, slug = :slug, color = :color WHERE id = :id'
+        )->execute([
+            'name' => $name,
+            'slug' => $slug,
+            'color' => $color ?: null,
+            'id' => $marketplaceId,
+        ]);
 
         header('Location: ' . url('/marketplaces'));
         exit;
