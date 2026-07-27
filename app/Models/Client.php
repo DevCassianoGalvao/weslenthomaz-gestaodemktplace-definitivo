@@ -242,7 +242,10 @@ class Client
      */
     public static function slugify(string $text): string
     {
-        $text = mb_strtolower(trim($text), 'UTF-8');
+        $text = trim($text);
+        $text = function_exists('mb_strtolower')
+            ? mb_strtolower($text, 'UTF-8')
+            : strtolower($text);
         $accents = [
             'á' => 'a', 'à' => 'a', 'â' => 'a', 'ã' => 'a', 'ä' => 'a',
             'é' => 'e', 'è' => 'e', 'ê' => 'e', 'ë' => 'e',
