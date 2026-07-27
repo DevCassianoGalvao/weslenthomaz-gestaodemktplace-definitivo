@@ -1,4 +1,5 @@
 ---
 deployment:
   tasks:
-    - /bin/cp -R * .htaccess "$HOME/cassianogalvao.com.br/weslenmarketplaces/"
+    - /bin/mkdir -p "$HOME/gestorweslen.com.br/paineldemetricas/"
+    - /bin/cp -R * .htaccess "$HOME/gestorweslen.com.br/paineldemetricas/"

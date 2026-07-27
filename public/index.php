@@ -24,7 +24,7 @@ $config = require __DIR__ . '/../config/config.php';
 $basePath = rtrim($config['BASE_PATH'] ?? '', '/');
 
 // Cookie de sessão escopado ao BASE_PATH quando o app roda numa subpasta do
-// domínio (ex: /weslenmarketplaces) — evita que a sessão vaze pra outros
+// domínio (ex: /paineldemetricas) — evita que a sessão vaze pra outros
 // apps hospedados no mesmo domínio.
 session_start([
     'cookie_httponly' => true,

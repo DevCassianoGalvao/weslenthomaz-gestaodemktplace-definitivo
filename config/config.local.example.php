@@ -12,7 +12,7 @@ return [
 
     // Preencha se o app for publicado numa subpasta do domínio (ex: cPanel sem
     // subdomínio dedicado). Deixe '' se o app vive na raiz do domínio/subdomínio.
-    'BASE_PATH' => '', // ex: '/weslenmarketplaces'
+    'BASE_PATH' => '', // ex: '/paineldemetricas'
 
     // Usados apenas pelo database/install.php para criar o admin inicial.
     // A senha deve ser trocada no primeiro login.

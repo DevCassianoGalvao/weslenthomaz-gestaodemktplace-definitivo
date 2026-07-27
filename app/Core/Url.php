@@ -5,7 +5,7 @@ namespace App\Core;
 /**
  * Resolve URLs absolutas considerando BASE_PATH (config), pro app funcionar
  * tanto na raiz de um (sub)domínio quanto numa subpasta dele (ex: cPanel sem
- * subdomínio dedicado — /weslenmarketplaces). Nunca monte "href=\"/algo\""
+ * subdomínio dedicado — /paineldemetricas). Nunca monte "href=\"/algo\""
  * direto numa view; sempre passe por Url::to()/url().
  */
 class Url
