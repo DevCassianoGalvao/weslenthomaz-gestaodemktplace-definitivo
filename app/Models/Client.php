@@ -186,63 +186,74 @@ class Client
     public static function syncMarketplaceAccounts(int $clientId, array $accounts): void
     {
         $pdo = Database::connection();
-        $keptIds = [];
-        $linkedMarketplaceIds = [];
-        $idsStmt = $pdo->prepare('SELECT id FROM client_marketplace_accounts WHERE client_id = :client_id');
-        $idsStmt->execute(['client_id' => $clientId]);
-        $allowedIds = array_map('intval', $idsStmt->fetchAll(\PDO::FETCH_COLUMN));
+        $pdo->beginTransaction();
+        try {
+            $keptIds = [];
+            $linkedMarketplaceIds = [];
+            $idsStmt = $pdo->prepare('SELECT id FROM client_marketplace_accounts WHERE client_id = :client_id');
+            $idsStmt->execute(['client_id' => $clientId]);
+            $allowedIds = array_map('intval', $idsStmt->fetchAll(\PDO::FETCH_COLUMN));
 
-        $upsert = $pdo->prepare(
-            'INSERT INTO client_marketplace_accounts (id, client_id, marketplace_id, account_name, account_identifier, is_active)
-             VALUES (:id, :client_id, :marketplace_id, :account_name, :account_identifier, 1)
-             ON DUPLICATE KEY UPDATE
-                marketplace_id = VALUES(marketplace_id),
-                account_name = VALUES(account_name),
-                account_identifier = VALUES(account_identifier),
-                is_active = 1'
-        );
-
-        foreach ($accounts as $account) {
-            $marketplaceId = (int) ($account['marketplace_id'] ?? 0);
-            $accountName = trim((string) ($account['account_name'] ?? ''));
-            if ($marketplaceId <= 0 || $accountName === '') {
-                continue;
-            }
-
-            $id = !empty($account['id']) ? (int) $account['id'] : null;
-            if ($id !== null && !in_array($id, $allowedIds, true)) {
-                $id = null;
-            }
-            $upsert->execute([
-                'id' => $id,
-                'client_id' => $clientId,
-                'marketplace_id' => $marketplaceId,
-                'account_name' => $accountName,
-                'account_identifier' => trim((string) ($account['account_identifier'] ?? '')) ?: null,
-            ]);
-
-            $savedId = $id ?: (int) $pdo->lastInsertId();
-            $keptIds[] = $savedId;
-            $linkedMarketplaceIds[] = $marketplaceId;
-
-            $pdo->prepare('UPDATE entries SET marketplace_id = :marketplace_id WHERE client_marketplace_account_id = :account_id')
-                ->execute(['marketplace_id' => $marketplaceId, 'account_id' => $savedId]);
-            $pdo->prepare('UPDATE entry_history SET marketplace_id = :marketplace_id WHERE client_marketplace_account_id = :account_id')
-                ->execute(['marketplace_id' => $marketplaceId, 'account_id' => $savedId]);
-        }
-
-        if (!empty($keptIds)) {
-            $placeholders = implode(',', array_fill(0, count($keptIds), '?'));
-            $stmt = $pdo->prepare(
-                "UPDATE client_marketplace_accounts SET is_active = 0 WHERE client_id = ? AND id NOT IN ({$placeholders})"
+            $insert = $pdo->prepare(
+                'INSERT INTO client_marketplace_accounts (client_id, marketplace_id, account_name, account_identifier, is_active)
+                 VALUES (:client_id, :marketplace_id, :account_name, :account_identifier, 1)'
             );
-            $stmt->execute(array_merge([$clientId], $keptIds));
-        } else {
-            $pdo->prepare('UPDATE client_marketplace_accounts SET is_active = 0 WHERE client_id = :client_id')
-                ->execute(['client_id' => $clientId]);
-        }
+            $update = $pdo->prepare(
+                'UPDATE client_marketplace_accounts
+                 SET marketplace_id = :marketplace_id, account_name = :account_name,
+                     account_identifier = :account_identifier, is_active = 1
+                 WHERE id = :id AND client_id = :client_id'
+            );
 
-        self::syncMarketplaces($clientId, array_values(array_unique($linkedMarketplaceIds)));
+            foreach ($accounts as $account) {
+                $marketplaceId = (int) ($account['marketplace_id'] ?? 0);
+                $accountName = trim((string) ($account['account_name'] ?? ''));
+                if ($marketplaceId <= 0 || $accountName === '') {
+                    continue;
+                }
+
+                $id = !empty($account['id']) ? (int) $account['id'] : null;
+                $params = [
+                    'client_id' => $clientId,
+                    'marketplace_id' => $marketplaceId,
+                    'account_name' => $accountName,
+                    'account_identifier' => trim((string) ($account['account_identifier'] ?? '')) ?: null,
+                ];
+
+                if ($id !== null && in_array($id, $allowedIds, true)) {
+                    $update->execute($params + ['id' => $id]);
+                    $savedId = $id;
+                } else {
+                    $insert->execute($params);
+                    $savedId = (int) $pdo->lastInsertId();
+                }
+
+                $keptIds[] = $savedId;
+                $linkedMarketplaceIds[] = $marketplaceId;
+
+                $pdo->prepare('UPDATE entries SET marketplace_id = :marketplace_id WHERE client_marketplace_account_id = :account_id')
+                    ->execute(['marketplace_id' => $marketplaceId, 'account_id' => $savedId]);
+                $pdo->prepare('UPDATE entry_history SET marketplace_id = :marketplace_id WHERE client_marketplace_account_id = :account_id')
+                    ->execute(['marketplace_id' => $marketplaceId, 'account_id' => $savedId]);
+            }
+
+            if (!empty($keptIds)) {
+                $placeholders = implode(',', array_fill(0, count($keptIds), '?'));
+                $stmt = $pdo->prepare(
+                    "UPDATE client_marketplace_accounts SET is_active = 0 WHERE client_id = ? AND id NOT IN ({$placeholders})"
+                );
+                $stmt->execute(array_merge([$clientId], $keptIds));
+            } else {
+                $pdo->prepare('UPDATE client_marketplace_accounts SET is_active = 0 WHERE client_id = :client_id')
+                    ->execute(['client_id' => $clientId]);
+            }
+
+            self::syncMarketplaces($clientId, array_values(array_unique($linkedMarketplaceIds)));
+            $pdo->commit();
+        } catch (\Throwable $exception) {
+            $pdo->rollBack();
+            throw $exception;
+        }
     }
 
     public static function accountUser(int $clientId): ?array
