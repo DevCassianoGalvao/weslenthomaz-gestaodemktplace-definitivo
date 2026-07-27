@@ -224,7 +224,7 @@ class ClientController
         }
 
         $logoUrl = $this->normalizeUrl($input['logo_url'] ?? '');
-        if ($logoUrl !== '' && !filter_var($logoUrl, FILTER_VALIDATE_URL)) {
+        if ($logoUrl !== '' && !$this->isInternalPath($logoUrl) && !filter_var($logoUrl, FILTER_VALIDATE_URL)) {
             $errors['logo_url'] = 'URL do logo inválida.';
         }
 
@@ -254,10 +254,18 @@ class ClientController
     private function normalizeUrl(string $value): string
     {
         $value = trim($value);
-        if ($value !== '' && !preg_match('#^[a-z][a-z0-9+.-]*://#i', $value)) {
+        if (preg_match('#^https?://paineldemetricas(/.*)?$#i', $value, $matches)) {
+            return '/paineldemetricas' . ($matches[1] ?? '');
+        }
+        if ($value !== '' && !$this->isInternalPath($value) && !preg_match('#^[a-z][a-z0-9+.-]*://#i', $value)) {
             $value = 'https://' . $value;
         }
         return $value;
+    }
+
+    private function isInternalPath(string $value): bool
+    {
+        return str_starts_with($value, '/');
     }
 
     private function handleLogoUpload(?array $file, string $slug, ?string $currentUrl = null): array
