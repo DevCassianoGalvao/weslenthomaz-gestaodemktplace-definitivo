@@ -1,5 +1,4 @@
 ---
 deployment:
   tasks:
-    - /bin/mkdir -p "$HOME/gestorweslen.com.br/paineldemetricas/"
-    - /bin/cp -R * .htaccess "$HOME/gestorweslen.com.br/paineldemetricas/"
+    - /bin/true
