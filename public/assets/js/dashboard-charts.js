@@ -68,14 +68,9 @@ function hslToHex(h, s, l) {
  * usadas lado a lado num gráfico (donut, barras). Mantém o matiz original,
  * então a cor continua reconhecível, só entra "no tom" do resto do produto.
  */
-function harmonizeChartColor(hex) {
-    if (!hex || hex[0] !== '#') {
-        return '#d6b25e';
-    }
-    var hsl = hexToHsl(hex);
-    var s = Math.min(Math.max(hsl[1], 55), 68);
-    var l = Math.min(Math.max(hsl[2], 50), 60);
-    return hslToHex(hsl[0], s, l);
+function harmonizeChartColor(hex, index) {
+    var palette = ['#d6b25e', '#f0d58a', '#a98a46', '#80672f', '#e7d39b', '#b99c5e', '#66522c'];
+    return palette[index % palette.length];
 }
 
 function renderDashboardCharts(evolution, distribution, comparativo, accentColor) {
@@ -128,8 +123,9 @@ function renderDashboardCharts(evolution, distribution, comparativo, accentColor
                         size: '68%',
                         labels: {
                             show: true,
-                            name: { color: '#8b93a7', fontSize: '0.8rem', offsetY: 4 },
+                            name: { show: false },
                             value: {
+                                show: false,
                                 color: '#e5e7eb',
                                 fontSize: '1.3rem',
                                 fontWeight: 700,
@@ -147,7 +143,7 @@ function renderDashboardCharts(evolution, distribution, comparativo, accentColor
                     },
                 },
             },
-            tooltip: { theme: 'dark', fillSeriesColor: false, fixed: { enabled: true, position: 'topRight', offsetY: 8, offsetX: -8 }, y: { formatter: function (v) { return formatBRL(v); } } },
+            tooltip: { theme: 'dark', fillSeriesColor: false, y: { formatter: function (v) { return formatBRL(v); } } },
         }).render();
     }
 
