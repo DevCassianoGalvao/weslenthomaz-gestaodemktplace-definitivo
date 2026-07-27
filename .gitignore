@@ -1,5 +1,8 @@
 /config/config.local.php
+/config/config.local.example.php
 *.log
+error_log
+**/error_log
 .DS_Store
 Thumbs.db
 .env
