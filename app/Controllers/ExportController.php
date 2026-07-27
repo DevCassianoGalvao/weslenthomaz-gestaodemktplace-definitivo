@@ -45,6 +45,10 @@ class ExportController
         }
         $rows = $month ? Dashboard::clientComparison($month) : [];
 
+        if (!function_exists('mb_strlen')) {
+            $this->streamComparisonCsv($month, $rows);
+        }
+
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Comparativo');
@@ -95,6 +99,10 @@ class ExportController
         $client = Client::find($clientId);
         $data = Dashboard::forClient($clientId, $month, $from, $to);
 
+        if (!function_exists('mb_strlen')) {
+            $this->streamClientCsv($client, $data);
+        }
+
         $spreadsheet = new Spreadsheet();
         $this->fillSummarySheet($spreadsheet->getActiveSheet(), $client, $data);
 
@@ -105,6 +113,90 @@ class ExportController
 
         $filename = 'dashboard-' . $client['slug'] . '-' . date('Y-m-d-His') . '.xlsx';
         $this->stream($spreadsheet, $filename);
+    }
+
+    private function streamComparisonCsv(?string $month, array $rows): void
+    {
+        $csvRows = [
+            ['Competência', $month ?? '-'],
+            [],
+            ['Cliente', 'Faturamento (R$)', 'Variação vs. mês anterior', 'Pedidos', 'Ticket médio (R$)'],
+        ];
+
+        foreach ($rows as $row) {
+            $csvRows[] = [
+                $row['client_name'],
+                number_format(((int) $row['total_value_cents']) / 100, 2, ',', '.'),
+                $row['variation_pct'] !== null ? number_format((float) $row['variation_pct'], 1, ',', '.') . '%' : '-',
+                (int) $row['total_orders'],
+                $row['ticket_medio_cents'] !== null
+                    ? number_format(((int) $row['ticket_medio_cents']) / 100, 2, ',', '.')
+                    : '-',
+            ];
+        }
+
+        $this->streamRawCsv('comparativo-clientes-' . date('Y-m-d-His') . '.csv', $csvRows);
+    }
+
+    private function streamClientCsv(array $client, array $data): void
+    {
+        $kpis = $data['kpis'];
+        $csvRows = [
+            ['Cliente', $client['name']],
+            ['Competência selecionada', $data['selectedMonth'] ?? '-'],
+            [],
+            ['Indicador', 'Valor'],
+            ['Faturamento do período', number_format(((int) $kpis['total_value_cents']) / 100, 2, ',', '.')],
+            ['Variação vs. mês anterior', $kpis['variation_pct'] !== null ? number_format((float) $kpis['variation_pct'], 1, ',', '.') . '%' : '-'],
+            ['Melhor desempenho', $kpis['best_marketplace']['name'] ?? '-'],
+            ['Maior queda', $kpis['worst_marketplace']['name'] ?? '-'],
+            ['Ticket médio geral', $kpis['ticket_medio_cents'] !== null ? number_format(((int) $kpis['ticket_medio_cents']) / 100, 2, ',', '.') : '-'],
+            [],
+            ['Competência', 'Período', 'Marketplace', 'Conta', 'Valor (R$)', 'Pedidos', 'Participação'],
+        ];
+
+        foreach ($data['periods'] as $period) {
+            $periodTotalCents = array_sum(array_column($period['entries'], 'value_cents'));
+            $label = date('d/m/Y', strtotime($period['start_date'])) . ' - ' . date('d/m/Y', strtotime($period['end_date']));
+            if (!empty($period['label'])) {
+                $label .= ' (' . $period['label'] . ')';
+            }
+
+            foreach ($period['entries'] as $entry) {
+                $valueCents = (int) $entry['value_cents'];
+                $csvRows[] = [
+                    $period['reference_month'],
+                    $label,
+                    $entry['marketplace_name'],
+                    $entry['account_name'] ?? '',
+                    number_format($valueCents / 100, 2, ',', '.'),
+                    (int) $entry['orders_count'],
+                    $periodTotalCents > 0 ? number_format(($valueCents / $periodTotalCents) * 100, 1, ',', '.') . '%' : '0,0%',
+                ];
+            }
+        }
+
+        $this->streamRawCsv('dashboard-' . $client['slug'] . '-' . date('Y-m-d-His') . '.csv', $csvRows);
+    }
+
+    private function streamRawCsv(string $filename, array $rows): void
+    {
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        header('Cache-Control: max-age=0');
+
+        $output = fopen('php://output', 'wb');
+        if ($output === false) {
+            http_response_code(500);
+            return;
+        }
+
+        fwrite($output, "\xEF\xBB\xBF");
+        foreach ($rows as $row) {
+            fputcsv($output, $row, ';');
+        }
+        fclose($output);
+        exit;
     }
 
     private function fillSummarySheet(Worksheet $sheet, array $client, array $data): void
