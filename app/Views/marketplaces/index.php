@@ -44,10 +44,14 @@ $val = fn(string $key, string $default = '') => htmlspecialchars($old[$key] ?? $
                                     </span>
                                 </td>
                                 <td>
-                                    <form method="post" action="<?= url('/marketplaces/' . (int) $marketplace['id'] . '/toggle') ?>">
-                                        <?= \App\Core\Csrf::field() ?>
-                                        <button type="submit" class="btn-secondary"><?= $marketplace['is_active'] ? 'Desativar' : 'Ativar' ?></button>
-                                    </form>
+                                    <?php if (\App\Core\Auth::isAdmin()): ?>
+                                        <form method="post" action="<?= url('/marketplaces/' . (int) $marketplace['id'] . '/toggle') ?>">
+                                            <?= \App\Core\Csrf::field() ?>
+                                            <button type="submit" class="btn-secondary"><?= $marketplace['is_active'] ? 'Desativar' : 'Ativar' ?></button>
+                                        </form>
+                                    <?php else: ?>
+                                        <span class="text-muted">Somente admin</span>
+                                    <?php endif; ?>
                                 </td>
                             </tr>
                         <?php endforeach; ?>

@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Core\Auth;
 use App\Core\Csrf;
 use App\Core\View;
 use App\Models\Client;
@@ -142,8 +143,8 @@ class ClientController
             $errors['marketplace_accounts'] = 'Cadastre pelo menos uma conta de marketplace.';
         }
 
-        $status = $_POST['status'] ?? 'active';
-        if (!in_array($status, ['active', 'paused'], true)) {
+        $status = Auth::isAdmin() ? ($_POST['status'] ?? 'active') : ($client['status'] ?? 'active');
+        if (Auth::isAdmin() && !in_array($status, ['active', 'paused'], true)) {
             $errors['status'] = 'Status inválido.';
         }
 

@@ -109,7 +109,7 @@ $accountRowsJson = json_encode(array_values(array_map(fn($account) => [
                             <label for="notes">Observações internas</label>
                             <input type="text" id="notes" name="notes" value="<?= $val('notes') ?>">
                         </div>
-                        <?php if ($isEdit): ?>
+                        <?php if ($isEdit && \App\Core\Auth::isAdmin()): ?>
                             <div class="field">
                                 <label for="status">Status</label>
                                 <select id="status" name="status">

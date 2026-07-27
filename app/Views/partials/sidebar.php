@@ -26,6 +26,9 @@ $isAgency = Auth::isAdmin() || Auth::isOperator();
                 <?= Icon::svg('grid') ?><span>Dashboard</span>
             </a>
             <?php if (Auth::isAdmin()): ?>
+                <a href="<?= url('/collaborators') ?>" class="nav-item <?= $active === 'collaborators' ? 'active' : '' ?>">
+                    <?= Icon::svg('users') ?><span>Colaboradores</span>
+                </a>
                 <a href="<?= url('/history') ?>" class="nav-item <?= $active === 'history' ? 'active' : '' ?>">
                     <?= Icon::svg('clock') ?><span>Histórico</span>
                 </a>

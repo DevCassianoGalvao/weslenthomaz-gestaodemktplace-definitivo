@@ -34,6 +34,7 @@ session_start([
 
 use App\Controllers\AuthController;
 use App\Controllers\ClientController;
+use App\Controllers\CollaboratorController;
 use App\Controllers\DashboardController;
 use App\Controllers\ExportController;
 use App\Controllers\HistoryController;
@@ -84,6 +85,11 @@ $agencyOnly = [
     RoleMiddleware::only(['admin', 'operator']),
 ];
 
+$adminOnly = [
+    fn() => AuthMiddleware::handle(),
+    RoleMiddleware::only(['admin']),
+];
+
 $router->get('/clients', [new ClientController(), 'index'], $agencyOnly);
 $router->get('/clients/new', [new ClientController(), 'create'], $agencyOnly);
 $router->post('/clients', [new ClientController(), 'store'], $agencyOnly);
@@ -93,7 +99,7 @@ $router->post('/clients/{id}/update', [new ClientController(), 'update'], $agenc
 $router->get('/marketplaces', [new MarketplaceController(), 'index'], $agencyOnly);
 $router->post('/marketplaces', [new MarketplaceController(), 'store'], $agencyOnly);
 $router->post('/marketplaces/{id}/update', [new MarketplaceController(), 'update'], $agencyOnly);
-$router->post('/marketplaces/{id}/toggle', [new MarketplaceController(), 'toggle'], $agencyOnly);
+$router->post('/marketplaces/{id}/toggle', [new MarketplaceController(), 'toggle'], $adminOnly);
 
 $router->get('/clients/{clientId}/periods', [new PeriodController(), 'index'], $agencyOnly);
 $router->get('/clients/{clientId}/periods/new', [new PeriodController(), 'create'], $agencyOnly);
@@ -104,10 +110,8 @@ $router->post('/periods/{id}/update', [new PeriodController(), 'update'], $agenc
 $router->get('/clients/{id}/dashboard', [new DashboardController(), 'client'], $agencyOnly);
 $router->get('/clients/{id}/dashboard/export', [new ExportController(), 'forClient'], $agencyOnly);
 
-$adminOnly = [
-    fn() => AuthMiddleware::handle(),
-    RoleMiddleware::only(['admin']),
-];
+$router->get('/collaborators', [new CollaboratorController(), 'index'], $adminOnly);
+$router->post('/collaborators', [new CollaboratorController(), 'store'], $adminOnly);
 
 $router->post('/clients/{id}/delete', [new ClientController(), 'delete'], $adminOnly);
 

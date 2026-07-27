@@ -83,6 +83,13 @@ class User
         return (int) $stmt->fetchColumn() > 0;
     }
 
+    public static function collaborators(): array
+    {
+        return Database::connection()->query(
+            "SELECT id, name, email, created_at FROM users WHERE role = 'operator' ORDER BY name"
+        )->fetchAll();
+    }
+
     /** Senha inicial gerada pelo sistema (PRD 5.3) — evita caracteres ambíguos (0/O, 1/l/I). */
     public static function generatePassword(int $length = 12): string
     {
