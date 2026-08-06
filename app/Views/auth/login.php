@@ -9,7 +9,7 @@
 <body>
     <div class="center-screen">
         <div class="card" id="login-card">
-            <h1>Painel de métricas <small>Gestor Weslen</small></h1>
+            <h1><span>Painel de métricas Gestor</span><span>Weslen</span></h1>
 
             <?php if (!empty($error)): ?>
                 <div class="alert-error"><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></div>
