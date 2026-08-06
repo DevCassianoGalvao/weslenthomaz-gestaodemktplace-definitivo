@@ -30,7 +30,7 @@ $accountRowsJson = json_encode(array_values(array_map(fn($account) => [
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><?= $isEdit ? 'Editar cliente' : 'Novo cliente' ?> - Painel de métricas by Weslen Thomaz</title>
+    <title><?= $isEdit ? 'Editar cliente' : 'Novo cliente' ?> - Painel de métricas Gestor Weslen</title>
     <?php require __DIR__ . '/../partials/head-assets.php'; ?>
 </head>
 <body>

@@ -73,7 +73,7 @@ $accentColor = (!empty($client['brand_color']) && preg_match('/^#[0-9a-fA-F]{6}$
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><?= htmlspecialchars($client['name'], ENT_QUOTES, 'UTF-8') ?> · Painel de métricas by Weslen Thomaz</title>
+    <title><?= htmlspecialchars($client['name'], ENT_QUOTES, 'UTF-8') ?> · Painel de métricas Gestor Weslen</title>
     <?php require __DIR__ . '/../partials/head-assets.php'; ?>
     <?php require __DIR__ . '/../partials/brand-style.php'; ?>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts@3"></script>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Clientes - Painel de métricas by Weslen Thomaz</title>
+    <title>Clientes - Painel de métricas Gestor Weslen</title>
     <?php require __DIR__ . '/../partials/head-assets.php'; ?>
 </head>
 <body>

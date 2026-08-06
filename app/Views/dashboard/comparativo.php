@@ -29,7 +29,7 @@ foreach ($rows as $row) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Comparativo entre clientes - Painel de métricas by Weslen Thomaz</title>
+    <title>Comparativo entre clientes - Painel de métricas Gestor Weslen</title>
     <?php require __DIR__ . '/../partials/head-assets.php'; ?>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts@3"></script>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/ScrollTrigger.min.js"></script>

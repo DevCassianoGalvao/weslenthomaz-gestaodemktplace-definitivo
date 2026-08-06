@@ -7,7 +7,7 @@ $val = fn(string $key, string $default = '') => htmlspecialchars($old[$key] ?? $
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Marketplaces - Painel de métricas by Weslen Thomaz</title>
+    <title>Marketplaces - Painel de métricas Gestor Weslen</title>
     <?php require __DIR__ . '/../partials/head-assets.php'; ?>
 </head>
 <body>

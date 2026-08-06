@@ -11,7 +11,7 @@ $val = fn(string $key) => htmlspecialchars($values[$key] ?? '', ENT_QUOTES, 'UTF
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Minha conta - Painel de métricas by Weslen Thomaz</title>
+    <title>Minha conta - Painel de métricas Gestor Weslen</title>
     <?php require __DIR__ . '/../partials/head-assets.php'; ?>
 </head>
 <body>
