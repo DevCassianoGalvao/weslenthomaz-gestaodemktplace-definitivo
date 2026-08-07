@@ -107,7 +107,7 @@ class ExportController
         $this->fillSummarySheet($spreadsheet->getActiveSheet(), $client, $data);
 
         $detailSheet = $spreadsheet->createSheet();
-        $this->fillDetailSheet($detailSheet, $data['periods']);
+        $this->fillDetailSheet($detailSheet, $data['periods'], $data['adsEnabled']);
 
         $spreadsheet->setActiveSheetIndex(0);
 
@@ -147,12 +147,14 @@ class ExportController
             [],
             ['Indicador', 'Valor'],
             ['Faturamento do período', number_format(((int) $kpis['total_value_cents']) / 100, 2, ',', '.')],
+            ['Investimento em Ads', number_format(((int) $kpis['total_ad_spend_cents']) / 100, 2, ',', '.')],
+            ['ROAS geral', $kpis['roas'] !== null ? number_format((float) $kpis['roas'], 2, ',', '.') . 'x' : '-'],
             ['Variação vs. mês anterior', $kpis['variation_pct'] !== null ? number_format((float) $kpis['variation_pct'], 1, ',', '.') . '%' : '-'],
             ['Melhor desempenho', $kpis['best_marketplace']['name'] ?? '-'],
             ['Maior queda', $kpis['worst_marketplace']['name'] ?? '-'],
             ['Ticket médio geral', $kpis['ticket_medio_cents'] !== null ? number_format(((int) $kpis['ticket_medio_cents']) / 100, 2, ',', '.') : '-'],
             [],
-            ['Competência', 'Período', 'Marketplace', 'Conta', 'Valor (R$)', 'Pedidos', 'Participação'],
+            ['Competência', 'Período', 'Marketplace', 'Conta', 'Faturamento (R$)', 'Investimento Ads (R$)', 'ROAS', 'Pedidos', 'Participação'],
         ];
 
         foreach ($data['periods'] as $period) {
@@ -164,12 +166,15 @@ class ExportController
 
             foreach ($period['entries'] as $entry) {
                 $valueCents = (int) $entry['value_cents'];
+                $adSpendCents = (int) $entry['ad_spend_cents'];
                 $csvRows[] = [
                     $period['reference_month'],
                     $label,
                     $entry['marketplace_name'],
                     $entry['account_name'] ?? '',
                     number_format($valueCents / 100, 2, ',', '.'),
+                    number_format($adSpendCents / 100, 2, ',', '.'),
+                    $adSpendCents > 0 ? number_format($valueCents / $adSpendCents, 2, ',', '.') . 'x' : '-',
                     (int) $entry['orders_count'],
                     $periodTotalCents > 0 ? number_format(($valueCents / $periodTotalCents) * 100, 1, ',', '.') . '%' : '0,0%',
                 ];
@@ -212,6 +217,8 @@ class ExportController
 
         $rows = [
             ['Faturamento do período', $kpis['total_value_cents'] / 100, 'currency'],
+            ['Investimento em Ads', $kpis['total_ad_spend_cents'] / 100, 'currency'],
+            ['ROAS geral', $kpis['roas'], 'roas'],
             ['Variação vs. mês anterior', $kpis['variation_pct'] !== null ? $kpis['variation_pct'] / 100 : null, 'percent'],
             ['Melhor desempenho', $kpis['best_marketplace']['name'] ?? '—', 'text'],
             ['Maior queda', $kpis['worst_marketplace']['name'] ?? '—', 'text'],
@@ -235,6 +242,9 @@ class ExportController
             } elseif ($type === 'percent') {
                 $sheet->setCellValue("B{$row}", $value);
                 $sheet->getStyle("B{$row}")->getNumberFormat()->setFormatCode('0.0%');
+            } elseif ($type === 'roas') {
+                $sheet->setCellValue("B{$row}", $value);
+                $sheet->getStyle("B{$row}")->getNumberFormat()->setFormatCode('0.00"x"');
             } else {
                 $sheet->setCellValue("B{$row}", $value);
             }
@@ -244,44 +254,61 @@ class ExportController
 
         if (!empty($kpis['marketplace_breakdown'])) {
             $row++;
-            $sheet->setCellValue("A{$row}", 'Ticket médio por marketplace');
+            $sheet->setCellValue("A{$row}", 'Desempenho por marketplace');
             $sheet->getStyle("A{$row}")->getFont()->setBold(true);
             $row++;
 
             $sheet->setCellValue("A{$row}", 'Marketplace');
             $sheet->setCellValue("B{$row}", 'Faturamento');
-            $sheet->setCellValue("C{$row}", 'Pedidos');
-            $sheet->setCellValue("D{$row}", 'Ticket médio');
-            $sheet->getStyle("A{$row}:D{$row}")->getFont()->setBold(true);
+            $sheet->setCellValue("C{$row}", 'Investimento Ads');
+            $sheet->setCellValue("D{$row}", 'ROAS');
+            $sheet->setCellValue("E{$row}", 'Pedidos');
+            $sheet->setCellValue("F{$row}", 'Ticket médio');
+            $sheet->getStyle("A{$row}:F{$row}")->getFont()->setBold(true);
             $row++;
 
             foreach ($kpis['marketplace_breakdown'] as $mp) {
                 $sheet->setCellValue("A{$row}", $mp['name']);
                 $sheet->setCellValue("B{$row}", $mp['total_value_cents'] / 100);
                 $sheet->getStyle("B{$row}")->getNumberFormat()->setFormatCode('"R$" #,##0.00');
-                $sheet->setCellValue("C{$row}", $mp['total_orders']);
-                if ($mp['ticket_medio_cents'] !== null) {
-                    $sheet->setCellValue("D{$row}", $mp['ticket_medio_cents'] / 100);
-                    $sheet->getStyle("D{$row}")->getNumberFormat()->setFormatCode('"R$" #,##0.00');
+                $sheet->setCellValue("C{$row}", $mp['total_ad_spend_cents'] / 100);
+                $sheet->getStyle("C{$row}")->getNumberFormat()->setFormatCode('"R$" #,##0.00');
+                if ($mp['roas'] !== null) {
+                    $sheet->setCellValue("D{$row}", $mp['roas']);
+                    $sheet->getStyle("D{$row}")->getNumberFormat()->setFormatCode('0.00"x"');
                 } else {
                     $sheet->setCellValue("D{$row}", '—');
+                }
+                $sheet->setCellValue("E{$row}", $mp['total_orders']);
+                if ($mp['ticket_medio_cents'] !== null) {
+                    $sheet->setCellValue("F{$row}", $mp['ticket_medio_cents'] / 100);
+                    $sheet->getStyle("F{$row}")->getNumberFormat()->setFormatCode('"R$" #,##0.00');
+                } else {
+                    $sheet->setCellValue("F{$row}", '—');
                 }
                 $row++;
             }
         }
 
-        foreach (['A', 'B', 'C', 'D'] as $col) {
+        foreach (['A', 'B', 'C', 'D', 'E', 'F'] as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
     }
 
-    private function fillDetailSheet(Worksheet $sheet, array $periods): void
+    private function fillDetailSheet(Worksheet $sheet, array $periods, bool $adsEnabled): void
     {
         $sheet->setTitle('Detalhado');
 
-        $headers = ['Competencia', 'Periodo', 'Marketplace', 'Conta', 'Valor (R$)', 'Pedidos', 'Participacao'];
+        $headers = ['Competencia', 'Periodo', 'Marketplace', 'Conta', 'Faturamento (R$)'];
+        if ($adsEnabled) {
+            $headers[] = 'Investimento Ads (R$)';
+            $headers[] = 'ROAS';
+        }
+        $headers[] = 'Pedidos';
+        $headers[] = 'Participacao';
         $sheet->fromArray($headers, null, 'A1');
-        $sheet->getStyle('A1:G1')->getFont()->setBold(true);
+        $lastColumn = $adsEnabled ? 'I' : 'G';
+        $sheet->getStyle("A1:{$lastColumn}1")->getFont()->setBold(true);
 
         $monthGroups = [];
         foreach ($periods as $period) {
@@ -292,10 +319,13 @@ class ExportController
         $row = 2;
         foreach ($monthGroups as $month => $groupPeriods) {
             $monthTotalCents = 0;
+            $monthAdSpendCents = 0;
 
             foreach ($groupPeriods as $period) {
                 $periodTotalCents = array_sum(array_column($period['entries'], 'value_cents'));
+                $periodAdSpendCents = array_sum(array_column($period['entries'], 'ad_spend_cents'));
                 $monthTotalCents += $periodTotalCents;
+                $monthAdSpendCents += $periodAdSpendCents;
 
                 $label = date('d/m/Y', strtotime($period['start_date'])) . ' - ' . date('d/m/Y', strtotime($period['end_date']));
                 if (!empty($period['label'])) {
@@ -311,11 +341,24 @@ class ExportController
                     $sheet->setCellValue("E{$row}", ((int) $entry['value_cents']) / 100);
                     $sheet->getStyle("E{$row}")->getNumberFormat()->setFormatCode('"R$" #,##0.00');
 
-                    $sheet->setCellValue("F{$row}", (int) $entry['orders_count']);
+                    $ordersColumn = 'F';
+                    $participationColumn = 'G';
+                    if ($adsEnabled) {
+                        $adSpendCents = (int) $entry['ad_spend_cents'];
+                        $sheet->setCellValue("F{$row}", $adSpendCents / 100);
+                        $sheet->getStyle("F{$row}")->getNumberFormat()->setFormatCode('"R$" #,##0.00');
+                        $sheet->setCellValue("G{$row}", $adSpendCents > 0 ? ((int) $entry['value_cents']) / $adSpendCents : '—');
+                        if ($adSpendCents > 0) {
+                            $sheet->getStyle("G{$row}")->getNumberFormat()->setFormatCode('0.00"x"');
+                        }
+                        $ordersColumn = 'H';
+                        $participationColumn = 'I';
+                    }
+                    $sheet->setCellValue("{$ordersColumn}{$row}", (int) $entry['orders_count']);
 
                     $pct = $periodTotalCents > 0 ? ((int) $entry['value_cents']) / $periodTotalCents : 0;
-                    $sheet->setCellValue("G{$row}", $pct);
-                    $sheet->getStyle("G{$row}")->getNumberFormat()->setFormatCode('0.0%');
+                    $sheet->setCellValue("{$participationColumn}{$row}", $pct);
+                    $sheet->getStyle("{$participationColumn}{$row}")->getNumberFormat()->setFormatCode('0.0%');
 
                     $row++;
                 }
@@ -323,19 +366,35 @@ class ExportController
                 $sheet->setCellValue("B{$row}", 'Total do periodo');
                 $sheet->setCellValue("E{$row}", $periodTotalCents / 100);
                 $sheet->getStyle("E{$row}")->getNumberFormat()->setFormatCode('"R$" #,##0.00');
-                $sheet->getStyle("B{$row}:E{$row}")->getFont()->setBold(true);
+                if ($adsEnabled) {
+                    $sheet->setCellValue("F{$row}", $periodAdSpendCents / 100);
+                    $sheet->getStyle("F{$row}")->getNumberFormat()->setFormatCode('"R$" #,##0.00');
+                    $sheet->setCellValue("G{$row}", $periodAdSpendCents > 0 ? $periodTotalCents / $periodAdSpendCents : '—');
+                    if ($periodAdSpendCents > 0) {
+                        $sheet->getStyle("G{$row}")->getNumberFormat()->setFormatCode('0.00"x"');
+                    }
+                }
+                $sheet->getStyle("B{$row}:{$lastColumn}{$row}")->getFont()->setBold(true);
                 $row++;
             }
 
             $sheet->setCellValue("A{$row}", "TOTAL {$month}");
             $sheet->setCellValue("E{$row}", $monthTotalCents / 100);
             $sheet->getStyle("E{$row}")->getNumberFormat()->setFormatCode('"R$" #,##0.00');
-            $sheet->getStyle("A{$row}:G{$row}")->getFont()->setBold(true);
-            $sheet->getStyle("A{$row}:G{$row}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('DDEBF7');
+            if ($adsEnabled) {
+                $sheet->setCellValue("F{$row}", $monthAdSpendCents / 100);
+                $sheet->getStyle("F{$row}")->getNumberFormat()->setFormatCode('"R$" #,##0.00');
+                $sheet->setCellValue("G{$row}", $monthAdSpendCents > 0 ? $monthTotalCents / $monthAdSpendCents : '—');
+                if ($monthAdSpendCents > 0) {
+                    $sheet->getStyle("G{$row}")->getNumberFormat()->setFormatCode('0.00"x"');
+                }
+            }
+            $sheet->getStyle("A{$row}:{$lastColumn}{$row}")->getFont()->setBold(true);
+            $sheet->getStyle("A{$row}:{$lastColumn}{$row}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('DDEBF7');
             $row += 2;
         }
 
-        foreach (['A', 'B', 'C', 'D', 'E', 'F', 'G'] as $col) {
+        foreach ($adsEnabled ? ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'] : ['A', 'B', 'C', 'D', 'E', 'F', 'G'] as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
     }

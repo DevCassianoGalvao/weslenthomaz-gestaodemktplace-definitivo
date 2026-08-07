@@ -1,5 +1,5 @@
 <?php
-/** @var array $client @var array $periods */
+/** @var array $client @var array $periods @var bool $adsEnabled */
 use App\Core\Format;
 use App\Core\Icon;
 ?>
@@ -40,6 +40,10 @@ use App\Core\Icon;
                                 <th>Período</th>
                                 <th>Competência</th>
                                 <th>Total faturado</th>
+                                <?php if ($adsEnabled): ?>
+                                    <th>Investimento Ads</th>
+                                    <th>ROAS</th>
+                                <?php endif; ?>
                                 <th>Total de pedidos</th>
                                 <th></th>
                             </tr>
@@ -57,6 +61,13 @@ use App\Core\Icon;
                                     </td>
                                     <td><?= htmlspecialchars($period['reference_month'], ENT_QUOTES, 'UTF-8') ?></td>
                                     <td><?= Format::centsToBrl((int) $period['total_value_cents']) ?></td>
+                                    <?php if ($adsEnabled): ?>
+                                        <td><?= Format::centsToBrl((int) ($period['total_ad_spend_cents'] ?? 0)) ?></td>
+                                        <td>
+                                            <?php $adSpend = (int) ($period['total_ad_spend_cents'] ?? 0); ?>
+                                            <?= $adSpend > 0 ? number_format(((int) $period['total_value_cents']) / $adSpend, 2, ',', '.') . 'x' : '—' ?>
+                                        </td>
+                                    <?php endif; ?>
                                     <td><?= (int) $period['total_orders'] ?></td>
                                     <td><a href="<?= url('/periods/' . (int) $period['id'] . '/edit') ?>">Editar</a></td>
                                 </tr>

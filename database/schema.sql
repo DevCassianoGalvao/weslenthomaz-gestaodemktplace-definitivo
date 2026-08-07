@@ -80,6 +80,7 @@ CREATE TABLE IF NOT EXISTS entries (
   client_marketplace_account_id INT NULL,
   marketplace_id INT NOT NULL,
   value_cents BIGINT NOT NULL DEFAULT 0,
+  ad_spend_cents BIGINT NOT NULL DEFAULT 0,
   orders_count INT NOT NULL DEFAULT 0, -- nº de pedidos (base do ticket médio)
   notes VARCHAR(255) NULL,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -99,6 +100,8 @@ CREATE TABLE IF NOT EXISTS entry_history (
   action ENUM('create','update','delete') NOT NULL,
   old_value_cents BIGINT NULL,
   new_value_cents BIGINT NULL,
+  old_ad_spend_cents BIGINT NULL,
+  new_ad_spend_cents BIGINT NULL,
   old_orders_count INT NULL,
   new_orders_count INT NULL,
   changed_by INT NOT NULL,

@@ -7,6 +7,7 @@ use App\Core\Format;
 use App\Core\View;
 use App\Models\Client;
 use App\Models\EntryHistory;
+use App\Models\Entry;
 use App\Models\Marketplace;
 
 class HistoryController
@@ -20,6 +21,7 @@ class HistoryController
             'clients' => Client::all(),
             'marketplaces' => Marketplace::all(),
             'filters' => $filters,
+            'adsEnabled' => Entry::supportsAdsSpend(),
         ]);
     }
 
@@ -33,7 +35,7 @@ class HistoryController
 
         $out = fopen('php://output', 'w');
         fprintf($out, "\xEF\xBB\xBF"); // BOM para o Excel abrir acentos corretamente
-        fputcsv($out, ['Data/hora', 'Cliente', 'Marketplace', 'Conta', 'Competência', 'Ação', 'Valor anterior', 'Valor novo', 'Pedidos anterior', 'Pedidos novo', 'Alterado por'], ';');
+        fputcsv($out, ['Data/hora', 'Cliente', 'Marketplace', 'Conta', 'Competência', 'Ação', 'Valor anterior', 'Valor novo', 'Ads anterior', 'Ads novo', 'Pedidos anterior', 'Pedidos novo', 'Alterado por'], ';');
 
         foreach ($rows as $row) {
             fputcsv($out, [
@@ -45,6 +47,8 @@ class HistoryController
                 $row['action'],
                 $row['old_value_cents'] !== null ? Format::centsToBrl((int) $row['old_value_cents']) : '',
                 Format::centsToBrl((int) $row['new_value_cents']),
+                ($row['old_ad_spend_cents'] ?? null) !== null ? Format::centsToBrl((int) $row['old_ad_spend_cents']) : '',
+                isset($row['new_ad_spend_cents']) ? Format::centsToBrl((int) $row['new_ad_spend_cents']) : '',
                 $row['old_orders_count'] ?? '',
                 $row['new_orders_count'],
                 $row['changed_by_name'],
@@ -74,6 +78,7 @@ class HistoryController
                 'clients' => Client::all(),
                 'marketplaces' => Marketplace::all(),
                 'filters' => $filters,
+                'adsEnabled' => Entry::supportsAdsSpend(),
                 'clearError' => 'Nome do cliente não confere. Nada foi apagado.',
             ]);
             return;
@@ -102,6 +107,7 @@ class HistoryController
                 'clients' => Client::all(),
                 'marketplaces' => Marketplace::all(),
                 'filters' => $filters,
+                'adsEnabled' => Entry::supportsAdsSpend(),
                 'clearError' => 'Frase de confirmação incorreta. Nada foi apagado.',
             ]);
             return;

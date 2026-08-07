@@ -5,6 +5,7 @@
  * @var array $marketplaces
  * @var array $filters
  * @var string|null $clearError
+ * @var bool $adsEnabled
  */
 use App\Core\Csrf;
 use App\Core\Format;
@@ -92,6 +93,7 @@ $exportUrl = url('/history/export' . (empty($filters) ? '' : '?' . http_build_qu
                                 <th>Conta</th>
                                 <th>Ação</th>
                                 <th>Valor (antes → depois)</th>
+                                <?php if ($adsEnabled): ?><th>Investimento Ads (antes → depois)</th><?php endif; ?>
                                 <th>Pedidos (antes → depois)</th>
                                 <th>Alterado por</th>
                             </tr>
@@ -113,6 +115,13 @@ $exportUrl = url('/history/export' . (empty($filters) ? '' : '?' . http_build_qu
                                         →
                                         <?= Format::centsToBrl((int) $entry['new_value_cents']) ?>
                                     </td>
+                                    <?php if ($adsEnabled): ?>
+                                        <td>
+                                            <?= ($entry['old_ad_spend_cents'] ?? null) !== null ? Format::centsToBrl((int) $entry['old_ad_spend_cents']) : '—' ?>
+                                            →
+                                            <?= Format::centsToBrl((int) ($entry['new_ad_spend_cents'] ?? 0)) ?>
+                                        </td>
+                                    <?php endif; ?>
                                     <td>
                                         <?= $entry['old_orders_count'] !== null ? (int) $entry['old_orders_count'] : '—' ?>
                                         →

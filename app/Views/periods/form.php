@@ -5,6 +5,7 @@
  * @var array|null $period
  * @var array $marketplaces
  * @var array $existingEntries chave = marketplace_id
+ * @var bool $adsEnabled
  * @var array $errors
  * @var array $old
  */
@@ -67,13 +68,15 @@ $action = url($isEdit ? '/periods/' . (int) $period['id'] . '/update' : '/client
 
                         <div x-data="periodMatrix(
                                 <?= htmlspecialchars(json_encode(array_values($marketplaces)), ENT_QUOTES, 'UTF-8') ?>,
-                                <?= htmlspecialchars(json_encode((object) $existingEntries), ENT_QUOTES, 'UTF-8') ?>
+                                <?= htmlspecialchars(json_encode((object) $existingEntries), ENT_QUOTES, 'UTF-8') ?>,
+                                <?= $adsEnabled ? 'true' : 'false' ?>
                             )">
                             <table>
                                 <thead>
                                     <tr>
                                         <th>Conta</th>
-                                        <th>Valor (R$)</th>
+                                        <th>Faturamento (R$)</th>
+                                        <?php if ($adsEnabled): ?><th>Investimento Ads (R$)</th><th>ROAS</th><?php endif; ?>
                                         <th>Nº de pedidos</th>
                                     </tr>
                                 </thead>
@@ -88,6 +91,13 @@ $action = url($isEdit ? '/periods/' . (int) $period['id'] . '/update' : '/client
                                             <td>
                                                 <input type="text" inputmode="numeric" x-model="row.valueDisplay" @input="onValueInput(row)" style="width:140px;">
                                             </td>
+                                            <?php if ($adsEnabled): ?>
+                                                <td>
+                                                    <input type="hidden" :name="'ad_spend_cents[' + row.id + ']'" :value="row.adSpendCents">
+                                                    <input type="text" inputmode="numeric" x-model="row.adSpendDisplay" @input="onAdSpendInput(row)" style="width:140px;">
+                                                </td>
+                                                <td><strong x-text="roasDisplay(row)"></strong></td>
+                                            <?php endif; ?>
                                             <td>
                                                 <input type="number" min="0" step="1" x-model.number="row.ordersCount" :name="'orders_count[' + row.id + ']'" style="width:100px;">
                                             </td>
@@ -98,6 +108,7 @@ $action = url($isEdit ? '/periods/' . (int) $period['id'] . '/update' : '/client
                                     <tr>
                                         <td><strong>Total</strong></td>
                                         <td><strong x-text="totalDisplay"></strong></td>
+                                        <?php if ($adsEnabled): ?><td><strong x-text="totalAdsDisplay"></strong></td><td><strong x-text="totalRoasDisplay"></strong></td><?php endif; ?>
                                         <td><strong x-text="totalOrders"></strong></td>
                                     </tr>
                                 </tfoot>

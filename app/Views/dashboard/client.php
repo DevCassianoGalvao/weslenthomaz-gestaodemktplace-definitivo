@@ -10,6 +10,7 @@
  * @var array $marketplaceTotals
  * @var array $marketplaceMatrix
  * @var array $periods
+ * @var bool $adsEnabled
  * @var bool $isInternal
  * @var array|null $allClients
  */
@@ -176,6 +177,18 @@ $accentColor = (!empty($client['brand_color']) && preg_match('/^#[0-9a-fA-F]{6}$
                             <div class="kpi-label">Faturamento do período</div>
                             <div class="kpi-value" data-countup="<?= (int) $kpis['total_value_cents'] / 100 ?>" data-format="currency"><?= Format::centsToBrl((int) $kpis['total_value_cents']) ?></div>
                         </div>
+                        <?php if ($adsEnabled): ?>
+                            <div class="kpi-card">
+                                <div class="kpi-label">Investimento em Ads</div>
+                                <div class="kpi-value" data-countup="<?= (int) $kpis['total_ad_spend_cents'] / 100 ?>" data-format="currency"><?= Format::centsToBrl((int) $kpis['total_ad_spend_cents']) ?></div>
+                                <div class="kpi-sub">Todas as contas no mes</div>
+                            </div>
+                            <div class="kpi-card">
+                                <div class="kpi-label">ROAS geral</div>
+                                <div class="kpi-value"><?= $kpis['roas'] !== null ? number_format((float) $kpis['roas'], 2, ',', '.') . 'x' : '—' ?></div>
+                                <div class="kpi-sub">Faturamento dividido pelo investimento em Ads</div>
+                            </div>
+                        <?php endif; ?>
                         <div class="kpi-card">
                             <div class="kpi-label">Variação vs. mês anterior</div>
                             <?php if ($kpis['variation_pct'] === null): ?>
@@ -212,10 +225,14 @@ $accentColor = (!empty($client['brand_color']) && preg_match('/^#[0-9a-fA-F]{6}$
                     </div>
 
                     <?php if (!empty($kpis['marketplace_breakdown'])): ?>
-                        <div class="section-title">Ticket médio por marketplace</div>
+                        <div class="section-title">Desempenho por marketplace</div>
                         <table style="margin-bottom:24px;">
                             <thead>
-                                <tr><th>Marketplace</th><th>Faturamento</th><th>Pedidos</th><th>Ticket médio</th></tr>
+                                <tr>
+                                    <th>Marketplace</th><th>Faturamento</th>
+                                    <?php if ($adsEnabled): ?><th>Investimento Ads</th><th>ROAS</th><?php endif; ?>
+                                    <th>Pedidos</th><th>Ticket médio</th>
+                                </tr>
                             </thead>
                             <tbody>
                                 <?php foreach ($kpis['marketplace_breakdown'] as $row): ?>
@@ -225,6 +242,10 @@ $accentColor = (!empty($client['brand_color']) && preg_match('/^#[0-9a-fA-F]{6}$
                                             <?= htmlspecialchars($row['name'], ENT_QUOTES, 'UTF-8') ?>
                                         </td>
                                         <td><?= Format::centsToBrl($row['total_value_cents']) ?></td>
+                                        <?php if ($adsEnabled): ?>
+                                            <td><?= Format::centsToBrl((int) $row['total_ad_spend_cents']) ?></td>
+                                            <td><?= $row['roas'] !== null ? number_format((float) $row['roas'], 2, ',', '.') . 'x' : '—' ?></td>
+                                        <?php endif; ?>
                                         <td><?= $row['total_orders'] ?></td>
                                         <td><?= $row['ticket_medio_cents'] !== null ? Format::centsToBrl($row['ticket_medio_cents']) : '—' ?></td>
                                     </tr>
@@ -254,10 +275,14 @@ $accentColor = (!empty($client['brand_color']) && preg_match('/^#[0-9a-fA-F]{6}$
                     <div class="section-title">Detalhamento por período</div>
                     <?php foreach ($monthGroups as $refMonth => $groupPeriods): ?>
                         <?php $monthTotal = array_sum(array_map(fn($p) => array_sum(array_column($p['entries'], 'value_cents')), $groupPeriods)); ?>
+                        <?php $monthAdSpend = array_sum(array_map(fn($p) => array_sum(array_column($p['entries'], 'ad_spend_cents')), $groupPeriods)); ?>
                         <details class="month-group" <?= $refMonth === $selectedMonth ? 'open' : '' ?>>
                             <summary>
                                 <span><?= htmlspecialchars($refMonth, ENT_QUOTES, 'UTF-8') ?></span>
-                                <span><?= Format::centsToBrl($monthTotal) ?></span>
+                                <span>
+                                    <?= Format::centsToBrl($monthTotal) ?>
+                                    <?php if ($adsEnabled): ?> · Ads <?= Format::centsToBrl($monthAdSpend) ?> · ROAS <?= $monthAdSpend > 0 ? number_format($monthTotal / $monthAdSpend, 2, ',', '.') . 'x' : '—' ?><?php endif; ?>
+                                </span>
                             </summary>
                             <?php foreach ($groupPeriods as $period): ?>
                                 <?php $periodTotal = array_sum(array_column($period['entries'], 'value_cents')); ?>
@@ -270,7 +295,11 @@ $accentColor = (!empty($client['brand_color']) && preg_match('/^#[0-9a-fA-F]{6}$
                                     </h4>
                                     <table>
                                         <thead>
-                                            <tr><th>Marketplace</th><th>Conta</th><th>Valor</th><th>Pedidos</th><th>Participação</th></tr>
+                                            <tr>
+                                                <th>Marketplace</th><th>Conta</th><th>Faturamento</th>
+                                                <?php if ($adsEnabled): ?><th>Investimento Ads</th><th>ROAS</th><?php endif; ?>
+                                                <th>Pedidos</th><th>Participação</th>
+                                            </tr>
                                         </thead>
                                         <tbody>
                                             <?php foreach ($period['entries'] as $entry): ?>
@@ -281,6 +310,10 @@ $accentColor = (!empty($client['brand_color']) && preg_match('/^#[0-9a-fA-F]{6}$
                                                     </td>
                                                     <td><?= htmlspecialchars($entry['account_name'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
                                                     <td><?= Format::centsToBrl((int) $entry['value_cents']) ?></td>
+                                                    <?php if ($adsEnabled): ?>
+                                                        <td><?= Format::centsToBrl((int) $entry['ad_spend_cents']) ?></td>
+                                                        <td><?= (int) $entry['ad_spend_cents'] > 0 ? number_format(((int) $entry['value_cents']) / (int) $entry['ad_spend_cents'], 2, ',', '.') . 'x' : '—' ?></td>
+                                                    <?php endif; ?>
                                                     <td><?= (int) $entry['orders_count'] ?></td>
                                                     <td><?= $periodTotal > 0 ? number_format(($entry['value_cents'] / $periodTotal) * 100, 1, ',', '.') . '%' : '—' ?></td>
                                                 </tr>

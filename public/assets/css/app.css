@@ -1115,6 +1115,10 @@ input:focus-visible {
   align-items: stretch;
 }
 
+.client-dashboard .kpi-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
 .kpi-card {
   min-width: 0;
   min-height: 120px;

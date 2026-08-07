@@ -8,9 +8,11 @@ class Period
 {
     public static function allForClient(int $clientId): array
     {
+        $adSpendSum = Entry::supportsAdsSpend() ? 'COALESCE(SUM(e.ad_spend_cents), 0)' : '0';
         $stmt = Database::connection()->prepare(
             'SELECT p.id, p.label, p.start_date, p.end_date, p.reference_month, p.created_at,
                     COALESCE(SUM(e.value_cents), 0) AS total_value_cents,
+                    ' . $adSpendSum . ' AS total_ad_spend_cents,
                     COALESCE(SUM(e.orders_count), 0) AS total_orders
              FROM periods p
              LEFT JOIN entries e ON e.period_id = p.id

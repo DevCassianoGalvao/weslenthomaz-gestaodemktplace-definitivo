@@ -23,6 +23,7 @@ class PeriodController
         View::render('periods/index', [
             'client' => $client,
             'periods' => Period::allForClient((int) $clientId),
+            'adsEnabled' => Entry::supportsAdsSpend(),
         ]);
     }
 
@@ -41,6 +42,7 @@ class PeriodController
             'period' => null,
             'marketplaces' => Client::marketplaces((int) $clientId),
             'existingEntries' => [],
+            'adsEnabled' => Entry::supportsAdsSpend(),
             'errors' => [],
             'old' => [],
         ]);
@@ -71,6 +73,7 @@ class PeriodController
                 'period' => null,
                 'marketplaces' => Client::marketplaces((int) $clientId),
                 'existingEntries' => $rows,
+                'adsEnabled' => Entry::supportsAdsSpend(),
                 'errors' => $errors,
                 'old' => $data,
             ]);
@@ -109,6 +112,7 @@ class PeriodController
             'period' => $period,
             'marketplaces' => Client::marketplaces((int) $client['id']),
             'existingEntries' => Entry::forPeriod((int) $id),
+            'adsEnabled' => Entry::supportsAdsSpend(),
             'errors' => [],
             'old' => [],
         ]);
@@ -141,6 +145,7 @@ class PeriodController
                 'period' => array_merge($period, $data),
                 'marketplaces' => $marketplaces,
                 'existingEntries' => $rows,
+                'adsEnabled' => Entry::supportsAdsSpend(),
                 'errors' => $errors,
                 'old' => [],
             ]);
@@ -202,11 +207,12 @@ class PeriodController
     }
 
     /**
-     * @return array<int, array{marketplace_id:int, value_cents:int, orders_count:int}>
+     * @return array<int, array{marketplace_id:int, value_cents:int, ad_spend_cents:int, orders_count:int}>
      */
     private function parseRows(array $input, array $marketplaces): array
     {
         $valueCents = $input['value_cents'] ?? [];
+        $adSpendCents = $input['ad_spend_cents'] ?? [];
         $ordersCount = $input['orders_count'] ?? [];
         $rows = [];
 
@@ -215,6 +221,7 @@ class PeriodController
             $rows[$id] = [
                 'marketplace_id' => (int) ($marketplace['marketplace_id'] ?? $marketplace['id']),
                 'value_cents' => max(0, (int) ($valueCents[$id] ?? 0)),
+                'ad_spend_cents' => max(0, (int) ($adSpendCents[$id] ?? 0)),
                 'orders_count' => max(0, (int) ($ordersCount[$id] ?? 0)),
             ];
         }

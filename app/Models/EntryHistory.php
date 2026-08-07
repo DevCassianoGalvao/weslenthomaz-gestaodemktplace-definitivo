@@ -9,13 +9,16 @@ class EntryHistory
 {
     public static function record(PDO $pdo, array $data): void
     {
+        $hasAdsSpend = array_key_exists('new_ad_spend_cents', $data);
         $stmt = $pdo->prepare(
             'INSERT INTO entry_history
-                (entry_id, period_id, client_id, client_marketplace_account_id, marketplace_id, action, old_value_cents, new_value_cents, old_orders_count, new_orders_count, changed_by)
+                (entry_id, period_id, client_id, client_marketplace_account_id, marketplace_id, action, old_value_cents, new_value_cents'
+                . ($hasAdsSpend ? ', old_ad_spend_cents, new_ad_spend_cents' : '') . ', old_orders_count, new_orders_count, changed_by)
              VALUES
-                (:entry_id, :period_id, :client_id, :client_marketplace_account_id, :marketplace_id, :action, :old_value_cents, :new_value_cents, :old_orders_count, :new_orders_count, :changed_by)'
+                (:entry_id, :period_id, :client_id, :client_marketplace_account_id, :marketplace_id, :action, :old_value_cents, :new_value_cents'
+                . ($hasAdsSpend ? ', :old_ad_spend_cents, :new_ad_spend_cents' : '') . ', :old_orders_count, :new_orders_count, :changed_by)'
         );
-        $stmt->execute([
+        $params = [
             'entry_id' => $data['entry_id'],
             'period_id' => $data['period_id'],
             'client_id' => $data['client_id'],
@@ -27,7 +30,12 @@ class EntryHistory
             'old_orders_count' => $data['old_orders_count'],
             'new_orders_count' => $data['new_orders_count'],
             'changed_by' => $data['changed_by'],
-        ]);
+        ];
+        if ($hasAdsSpend) {
+            $params['old_ad_spend_cents'] = $data['old_ad_spend_cents'];
+            $params['new_ad_spend_cents'] = $data['new_ad_spend_cents'];
+        }
+        $stmt->execute($params);
     }
 
     /**

@@ -1,4 +1,4 @@
-function periodMatrix(marketplaces, existingEntries) {
+function periodMatrix(marketplaces, existingEntries, adsEnabled) {
     return {
         rows: marketplaces.map(function (m) {
             var existing = existingEntries[m.id] || { value_cents: 0, orders_count: 0 };
@@ -8,6 +8,8 @@ function periodMatrix(marketplaces, existingEntries) {
                 color: m.color,
                 valueCents: existing.value_cents || 0,
                 valueDisplay: formatCentsToBrl(existing.value_cents || 0),
+                adSpendCents: existing.ad_spend_cents || 0,
+                adSpendDisplay: formatCentsToBrl(existing.ad_spend_cents || 0),
                 ordersCount: existing.orders_count || 0,
             };
         }),
@@ -16,14 +18,37 @@ function periodMatrix(marketplaces, existingEntries) {
             row.valueCents = digits === '' ? 0 : parseInt(digits, 10);
             row.valueDisplay = formatCentsToBrl(row.valueCents);
         },
+        onAdSpendInput: function (row) {
+            var digits = (row.adSpendDisplay || '').replace(/\D/g, '');
+            row.adSpendCents = digits === '' ? 0 : parseInt(digits, 10);
+            row.adSpendDisplay = formatCentsToBrl(row.adSpendCents);
+        },
         get totalCents() {
             return this.rows.reduce(function (sum, r) { return sum + (r.valueCents || 0); }, 0);
         },
         get totalOrders() {
             return this.rows.reduce(function (sum, r) { return sum + (parseInt(r.ordersCount, 10) || 0); }, 0);
         },
+        get totalAdsCents() {
+            return this.rows.reduce(function (sum, r) { return sum + (r.adSpendCents || 0); }, 0);
+        },
         get totalDisplay() {
             return formatCentsToBrl(this.totalCents);
+        },
+        get totalAdsDisplay() {
+            return formatCentsToBrl(this.totalAdsCents);
+        },
+        roasDisplay: function (row) {
+            if (!row.adSpendCents) {
+                return '—';
+            }
+            return (row.valueCents / row.adSpendCents).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + 'x';
+        },
+        get totalRoasDisplay() {
+            if (!this.totalAdsCents) {
+                return '—';
+            }
+            return (this.totalCents / this.totalAdsCents).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + 'x';
         },
     };
 }

@@ -147,6 +147,18 @@ https://gestorweslen.com.br/paineldemetricas/migrate-marketplace-accounts.php
 Depois apague `public/migrate-marketplace-accounts.php` e
 `database/migrate_marketplace_accounts.php`.
 
+Para habilitar investimento em Ads e ROAS, depois de publicar esta versão abra
+uma vez:
+
+```
+https://gestorweslen.com.br/paineldemetricas/migrate-ads-metrics.php
+```
+
+A migration apenas adiciona as colunas de Ads com valor inicial `0`; ela não
+remove nem altera os lançamentos existentes. Depois da confirmação, apague
+`public/migrate-ads-metrics.php` e `database/migrate_ads_metrics.php` pelo
+File Manager.
+
 Acesse no navegador:
 
 ```

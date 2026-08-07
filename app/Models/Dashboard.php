@@ -44,10 +44,12 @@ class Dashboard
     public static function monthlyTotals(int $clientId, ?string $from = null, ?string $to = null): array
     {
         [$where, $params] = self::dateRangeWhere($clientId, $from, $to);
+        $adSpendSum = self::adSpendSumSql();
 
         $stmt = Database::connection()->prepare(
             "SELECT p.reference_month,
                     COALESCE(SUM(e.value_cents), 0) AS total_value_cents,
+                    {$adSpendSum} AS total_ad_spend_cents,
                     COALESCE(SUM(e.orders_count), 0) AS total_orders
              FROM periods p
              LEFT JOIN entries e ON e.period_id = p.id
@@ -63,9 +65,11 @@ class Dashboard
     /** @return array<int, array{id:int, name:string, color:?string, total_value_cents:int, total_orders:int}> desc por valor */
     public static function marketplaceTotalsForMonth(int $clientId, string $month): array
     {
+        $adSpendSum = self::adSpendSumSql();
         $stmt = Database::connection()->prepare(
             'SELECT m.id, m.name, m.color,
                     COALESCE(SUM(e.value_cents), 0) AS total_value_cents,
+                    ' . $adSpendSum . ' AS total_ad_spend_cents,
                     COALESCE(SUM(e.orders_count), 0) AS total_orders
              FROM client_marketplaces cm
              INNER JOIN marketplaces m ON m.id = cm.marketplace_id
@@ -130,6 +134,7 @@ class Dashboard
                     cma.account_name,
                     m.color,
                     e.value_cents,
+                    " . self::adSpendColumnSql() . ",
                     e.orders_count
              FROM entries e
              INNER JOIN marketplaces m ON m.id = e.marketplace_id
@@ -160,6 +165,8 @@ class Dashboard
         if ($month === null) {
             return [
                 'total_value_cents' => 0,
+                'total_ad_spend_cents' => 0,
+                'roas' => null,
                 'total_orders' => 0,
                 'ticket_medio_cents' => null,
                 'variation_pct' => null,
@@ -171,6 +178,7 @@ class Dashboard
 
         $current = self::marketplaceTotalsForMonth($clientId, $month);
         $totalValueCents = array_sum(array_column($current, 'total_value_cents'));
+        $totalAdSpendCents = array_sum(array_column($current, 'total_ad_spend_cents'));
         $totalOrders = array_sum(array_column($current, 'total_orders'));
 
         $previousMonth = self::previousMonth($month);
@@ -208,18 +216,23 @@ class Dashboard
         $breakdown = array_map(function ($row) {
             $orders = (int) $row['total_orders'];
             $value = (int) $row['total_value_cents'];
+            $adSpend = (int) $row['total_ad_spend_cents'];
             return [
                 'id' => (int) $row['id'],
                 'name' => $row['name'],
                 'color' => $row['color'],
                 'total_value_cents' => $value,
+                'total_ad_spend_cents' => $adSpend,
                 'total_orders' => $orders,
                 'ticket_medio_cents' => $orders > 0 ? (int) round($value / $orders) : null,
+                'roas' => $adSpend > 0 ? round($value / $adSpend, 2) : null,
             ];
         }, $current);
 
         return [
             'total_value_cents' => $totalValueCents,
+            'total_ad_spend_cents' => $totalAdSpendCents,
+            'roas' => $totalAdSpendCents > 0 ? round($totalValueCents / $totalAdSpendCents, 2) : null,
             'total_orders' => $totalOrders,
             'ticket_medio_cents' => $totalOrders > 0 ? (int) round($totalValueCents / $totalOrders) : null,
             'variation_pct' => $variationPct,
@@ -244,6 +257,7 @@ class Dashboard
         return [
             'referenceMonths' => $referenceMonths,
             'selectedMonth' => $month,
+            'adsEnabled' => Entry::supportsAdsSpend(),
             'from' => $from,
             'to' => $to,
             'kpis' => self::kpis($clientId, $month),
@@ -342,5 +356,15 @@ class Dashboard
         }
 
         return ['WHERE ' . implode(' AND ', $conditions), $params];
+    }
+
+    private static function adSpendSumSql(): string
+    {
+        return Entry::supportsAdsSpend() ? 'COALESCE(SUM(e.ad_spend_cents), 0)' : '0';
+    }
+
+    private static function adSpendColumnSql(): string
+    {
+        return Entry::supportsAdsSpend() ? 'e.ad_spend_cents' : '0 AS ad_spend_cents';
     }
 }
