@@ -128,7 +128,7 @@ class Entry
                     'new_orders_count' => $newOrdersCount,
                     'changed_by' => $changedBy,
                 ];
-                if ($adsSpendSupported) {
+                if ($adsSpendSupported && EntryHistory::supportsAdsSpend()) {
                     $historyData['old_ad_spend_cents'] = $existing === null ? null : $oldAdSpendCents;
                     $historyData['new_ad_spend_cents'] = $newAdSpendCents;
                 }

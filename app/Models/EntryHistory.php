@@ -7,6 +7,29 @@ use PDO;
 
 class EntryHistory
 {
+    private static ?bool $adsSpendHistorySupported = null;
+
+    public static function supportsAdsSpend(): bool
+    {
+        if (self::$adsSpendHistorySupported !== null) {
+            return self::$adsSpendHistorySupported;
+        }
+
+        $stmt = Database::connection()->prepare(
+            'SELECT COUNT(*) FROM information_schema.columns
+             WHERE table_schema = DATABASE()
+               AND table_name = :table_name
+               AND column_name IN (:old_column, :new_column)'
+        );
+        $stmt->execute([
+            'table_name' => 'entry_history',
+            'old_column' => 'old_ad_spend_cents',
+            'new_column' => 'new_ad_spend_cents',
+        ]);
+
+        return self::$adsSpendHistorySupported = (int) $stmt->fetchColumn() === 2;
+    }
+
     public static function record(PDO $pdo, array $data): void
     {
         $hasAdsSpend = array_key_exists('new_ad_spend_cents', $data);
