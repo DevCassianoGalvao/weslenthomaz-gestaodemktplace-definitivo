@@ -125,6 +125,6 @@ $action = url($isEdit ? '/periods/' . (int) $period['id'] . '/update' : '/client
         </main>
     </div>
 
-    <script src="<?= url('/assets/js/period-matrix.js') ?>"></script>
+    <script src="<?= asset_url('/assets/js/period-matrix.js') ?>"></script>
 </body>
 </html>
