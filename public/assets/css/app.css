@@ -448,6 +448,44 @@ table tfoot td {
   font-size: 0.92rem;
 }
 
+.period-entry-table {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.period-entry-table table {
+  table-layout: fixed;
+}
+
+.period-entry-table th,
+.period-entry-table td {
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+.period-entry-table th:first-child,
+.period-entry-table td:first-child {
+  width: 28%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.period-entry-table th:nth-child(2),
+.period-entry-table td:nth-child(2),
+.period-entry-table th:nth-child(3),
+.period-entry-table td:nth-child(3) {
+  width: 21%;
+}
+
+.period-entry-table input[type="text"],
+.period-entry-table input[type="number"] {
+  box-sizing: border-box;
+  width: 100% !important;
+  max-width: 140px;
+}
+
 /* ---------- Cards de formulário ---------- */
 
 .form-card {

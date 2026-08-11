@@ -66,7 +66,7 @@ $action = url($isEdit ? '/periods/' . (int) $period['id'] . '/update' : '/client
 
                         <div class="section-title">Faturamento por conta de marketplace</div>
 
-                        <div x-data="periodMatrix(
+                        <div class="period-entry-table" x-data="periodMatrix(
                                 <?= htmlspecialchars(json_encode(array_values($marketplaces)), ENT_QUOTES, 'UTF-8') ?>,
                                 <?= htmlspecialchars(json_encode((object) $existingEntries), ENT_QUOTES, 'UTF-8') ?>,
                                 <?= $adsEnabled ? 'true' : 'false' ?>
