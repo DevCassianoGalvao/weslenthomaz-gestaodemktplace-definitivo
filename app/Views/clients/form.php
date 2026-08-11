@@ -163,10 +163,14 @@ $accountRowsJson = json_encode(array_values(array_map(fn($account) => [
                             </div>
                             <div class="field">
                                 <label for="account_password">Nova senha (opcional)</label>
-                                <input type="password" id="account_password" name="account_password" minlength="8" placeholder="deixe vazio para manter">
+                                <div style="display:flex;gap:8px;align-items:stretch;">
+                                    <input type="password" id="account_password" name="account_password" minlength="8" autocomplete="new-password" placeholder="deixe vazio para manter" style="min-width:0;flex:1;">
+                                    <button type="button" class="btn-secondary" id="generate-account-password">Gerar</button>
+                                </div>
                                 <?php if (!empty($errors['account_password'])): ?><div class="field-error"><?= htmlspecialchars($errors['account_password'], ENT_QUOTES, 'UTF-8') ?></div><?php endif; ?>
                             </div>
                         </div>
+                        <p class="text-muted">A senha antiga não pode ser recuperada. Gere uma nova e copie-a após salvar.</p>
                     <?php endif; ?>
 
                     <div class="form-actions">
@@ -247,6 +251,20 @@ $accountRowsJson = json_encode(array_values(array_map(fn($account) => [
                 rows.forEach(addRow);
             }
             addButton.addEventListener('click', function () { addRow(); });
+
+            var passwordButton = document.getElementById('generate-account-password');
+            var passwordInput = document.getElementById('account_password');
+            if (passwordButton && passwordInput) {
+                passwordButton.addEventListener('click', function () {
+                    var chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$%';
+                    var values = new Uint32Array(12);
+                    crypto.getRandomValues(values);
+                    passwordInput.value = Array.from(values, function (value) {
+                        return chars[value % chars.length];
+                    }).join('');
+                    passwordInput.type = 'text';
+                });
+            }
         })();
     </script>
 </body>

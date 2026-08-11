@@ -108,7 +108,7 @@ $action = url($isEdit ? '/periods/' . (int) $period['id'] . '/update' : '/client
                                     <tr>
                                         <td><strong>Total</strong></td>
                                         <td><strong x-text="totalDisplay"></strong></td>
-                                        <?php if ($adsEnabled): ?><td><strong x-text="totalAdsDisplay"></strong></td><td><strong x-text="totalRoasDisplay"></strong></td><?php endif; ?>
+                                        <?php if ($adsEnabled): ?><td><strong x-text="totalAdsDisplay"></strong></td><td><strong x-text="totalRoasDisplay" title="ROAS consolidado: faturamento total dividido pelo investimento total em Ads"></strong></td><?php endif; ?>
                                         <td><strong x-text="totalOrders"></strong></td>
                                     </tr>
                                 </tfoot>

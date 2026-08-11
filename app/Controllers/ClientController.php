@@ -177,7 +177,16 @@ class ClientController
         Client::update($clientId, $data['name'], $data['slug'], $data['logo_url'], $data['brand_color'], $status, $data);
         Client::syncMarketplaceAccounts($clientId, $marketplaceAccounts);
         if ($accountUser) {
-            User::updateCredentials((int) $accountUser['id'], $accountEmail, $accountPassword !== '' ? $accountPassword : null);
+            $passwordChanged = $accountPassword !== '';
+            User::updateCredentials((int) $accountUser['id'], $accountEmail, $passwordChanged ? $accountPassword : null);
+            if ($passwordChanged) {
+                View::render('clients/credentials-updated', [
+                    'client' => Client::find($clientId),
+                    'accountEmail' => $accountEmail,
+                    'newPassword' => $accountPassword,
+                ]);
+                return;
+            }
         }
 
         header('Location: ' . url('/clients'));
