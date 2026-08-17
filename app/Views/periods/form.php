@@ -39,7 +39,7 @@ $action = url($isEdit ? '/periods/' . (int) $period['id'] . '/update' : '/client
                         <a href="<?= url('/clients/' . (int) $client['id'] . '/edit') ?>" style="color:inherit;text-decoration:underline;">Vincule marketplaces primeiro</a>.
                     </div>
                 <?php else: ?>
-                    <form class="form-card" method="post" action="<?= $action ?>" style="max-width:760px;">
+                    <form class="form-card period-entry-form" method="post" action="<?= $action ?>" style="max-width:760px;">
                         <?= Csrf::field() ?>
 
                         <div class="form-grid">

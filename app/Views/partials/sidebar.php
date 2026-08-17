@@ -51,3 +51,12 @@ $isAgency = Auth::isAdmin() || Auth::isOperator();
         </form>
     </div>
 </aside>
+<script>
+    (function () {
+        var keepaliveUrl = <?= json_encode(url('/session/keepalive')) ?>;
+        window.setInterval(function () {
+            if (document.visibilityState === 'hidden') return;
+            fetch(keepaliveUrl, { credentials: 'same-origin', cache: 'no-store' }).catch(function () {});
+        }, 5 * 60 * 1000);
+    })();
+</script>

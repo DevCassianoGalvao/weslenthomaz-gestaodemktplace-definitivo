@@ -63,12 +63,24 @@ function formatCentsToBrl(cents) {
 document.addEventListener('DOMContentLoaded', function () {
     var startDate = document.getElementById('start_date');
     var referenceMonth = document.getElementById('reference_month');
-    if (!startDate || !referenceMonth) {
-        return;
+    if (startDate && referenceMonth) {
+        startDate.addEventListener('change', function () {
+            if (!referenceMonth.value && startDate.value) {
+                referenceMonth.value = startDate.value.slice(0, 7);
+            }
+        });
     }
-    startDate.addEventListener('change', function () {
-        if (!referenceMonth.value && startDate.value) {
-            referenceMonth.value = startDate.value.slice(0, 7);
-        }
+
+    var periodForm = document.querySelector('.period-entry-form');
+    if (!periodForm) return;
+
+    var isDirty = false;
+    periodForm.addEventListener('input', function () { isDirty = true; }, true);
+    periodForm.addEventListener('change', function () { isDirty = true; }, true);
+    periodForm.addEventListener('submit', function () { isDirty = false; });
+    window.addEventListener('beforeunload', function (event) {
+        if (!isDirty) return;
+        event.preventDefault();
+        event.returnValue = '';
     });
 });

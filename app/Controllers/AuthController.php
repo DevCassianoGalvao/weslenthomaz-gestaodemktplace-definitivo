@@ -50,6 +50,13 @@ class AuthController
         exit;
     }
 
+    public function keepalive(): void
+    {
+        $_SESSION['last_keepalive_at'] = time();
+        header('Cache-Control: no-store');
+        http_response_code(204);
+    }
+
     public function account(): void
     {
         $user = User::findById(Auth::id() ?? 0);

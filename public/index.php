@@ -22,11 +22,17 @@ require __DIR__ . '/../app/Core/helpers.php';
 
 $config = require __DIR__ . '/../config/config.php';
 $basePath = rtrim($config['BASE_PATH'] ?? '', '/');
+$sessionLifetime = 12 * 60 * 60;
+
+// Mantém sessões longas para preenchimentos demorados; o keepalive autenticado
+// renova a sessão enquanto a área logada estiver aberta.
+ini_set('session.gc_maxlifetime', (string) $sessionLifetime);
 
 // Cookie de sessão escopado ao BASE_PATH quando o app roda numa subpasta do
 // domínio (ex: /paineldemetricas) — evita que a sessão vaze pra outros
 // apps hospedados no mesmo domínio.
 session_start([
+    'cookie_lifetime' => $sessionLifetime,
     'cookie_httponly' => true,
     'cookie_samesite' => 'Lax',
     'cookie_path' => $basePath !== '' ? $basePath . '/' : '/',
@@ -55,6 +61,7 @@ $authenticated = [
     fn() => AuthMiddleware::handle(),
 ];
 
+$router->get('/session/keepalive', [new AuthController(), 'keepalive'], $authenticated);
 $router->get('/account', [new AuthController(), 'account'], $authenticated);
 $router->post('/account', [new AuthController(), 'updateAccount'], $authenticated);
 
