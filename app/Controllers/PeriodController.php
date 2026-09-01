@@ -13,7 +13,8 @@ class PeriodController
 {
     public function index(string $clientId): void
     {
-        $client = Client::find((int) $clientId);
+        $clientId = (int) $clientId;
+        $client = Client::find($clientId);
         if (!$client) {
             http_response_code(404);
             require __DIR__ . '/../Views/errors/404.php';
@@ -22,8 +23,8 @@ class PeriodController
 
         View::render('periods/index', [
             'client' => $client,
-            'periods' => Period::allForClient((int) $clientId),
-            'adsEnabled' => Entry::supportsAdsSpend(),
+            'periods' => Period::allForClient($clientId),
+            'adsEnabled' => $this->adsEnabledForClient($clientId),
         ]);
     }
 
@@ -42,7 +43,7 @@ class PeriodController
             'period' => null,
             'marketplaces' => Client::marketplaces((int) $clientId),
             'existingEntries' => [],
-            'adsEnabled' => Entry::supportsAdsSpend(),
+            'adsEnabled' => $this->adsEnabledForClient((int) $clientId),
             'errors' => [],
             'old' => [],
         ]);
@@ -64,7 +65,8 @@ class PeriodController
         }
 
         [$data, $errors] = $this->validatePeriod($_POST);
-        $rows = $this->parseRows($_POST, Client::marketplaces((int) $clientId));
+        $adsEnabled = $this->adsEnabledForClient((int) $clientId);
+        $rows = $this->parseRows($_POST, Client::marketplaces((int) $clientId), $adsEnabled);
 
         if (!empty($errors)) {
             View::render('periods/form', [
@@ -73,7 +75,7 @@ class PeriodController
                 'period' => null,
                 'marketplaces' => Client::marketplaces((int) $clientId),
                 'existingEntries' => $rows,
-                'adsEnabled' => Entry::supportsAdsSpend(),
+                'adsEnabled' => $adsEnabled,
                 'errors' => $errors,
                 'old' => $data,
             ]);
@@ -112,7 +114,7 @@ class PeriodController
             'period' => $period,
             'marketplaces' => Client::marketplaces((int) $client['id']),
             'existingEntries' => Entry::forPeriod((int) $id),
-            'adsEnabled' => Entry::supportsAdsSpend(),
+            'adsEnabled' => $this->adsEnabledForClient((int) $client['id']),
             'errors' => [],
             'old' => [],
         ]);
@@ -136,7 +138,8 @@ class PeriodController
         $client = Client::find((int) $period['client_id']);
         [$data, $errors] = $this->validatePeriod($_POST);
         $marketplaces = Client::marketplaces((int) $client['id']);
-        $rows = $this->parseRows($_POST, $marketplaces);
+        $adsEnabled = $this->adsEnabledForClient((int) $client['id']);
+        $rows = $this->parseRows($_POST, $marketplaces, $adsEnabled);
 
         if (!empty($errors)) {
             View::render('periods/form', [
@@ -145,7 +148,7 @@ class PeriodController
                 'period' => array_merge($period, $data),
                 'marketplaces' => $marketplaces,
                 'existingEntries' => $rows,
-                'adsEnabled' => Entry::supportsAdsSpend(),
+                'adsEnabled' => $adsEnabled,
                 'errors' => $errors,
                 'old' => [],
             ]);
@@ -209,7 +212,7 @@ class PeriodController
     /**
      * @return array<int, array{marketplace_id:int, value_cents:int, ad_spend_cents:int, orders_count:int}>
      */
-    private function parseRows(array $input, array $marketplaces): array
+    private function parseRows(array $input, array $marketplaces, bool $adsEnabled = true): array
     {
         $valueCents = $input['value_cents'] ?? [];
         $adSpendCents = $input['ad_spend_cents'] ?? [];
@@ -221,11 +224,18 @@ class PeriodController
             $rows[$id] = [
                 'marketplace_id' => (int) ($marketplace['marketplace_id'] ?? $marketplace['id']),
                 'value_cents' => max(0, (int) ($valueCents[$id] ?? 0)),
-                'ad_spend_cents' => max(0, (int) ($adSpendCents[$id] ?? 0)),
                 'orders_count' => max(0, (int) ($ordersCount[$id] ?? 0)),
             ];
+            if ($adsEnabled) {
+                $rows[$id]['ad_spend_cents'] = max(0, (int) ($adSpendCents[$id] ?? 0));
+            }
         }
 
         return $rows;
+    }
+
+    private function adsEnabledForClient(int $clientId): bool
+    {
+        return Entry::supportsAdsSpend();
     }
 }

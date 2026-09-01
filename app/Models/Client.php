@@ -6,11 +6,43 @@ use App\Core\Database;
 
 class Client
 {
+    private static ?bool $adsVisibilitySupported = null;
+
+    public static function supportsAdsVisibility(): bool
+    {
+        if (self::$adsVisibilitySupported !== null) {
+            return self::$adsVisibilitySupported;
+        }
+
+        $stmt = Database::connection()->prepare(
+            'SELECT COUNT(*) FROM information_schema.columns
+             WHERE table_schema = DATABASE() AND table_name = :table_name AND column_name = :column_name'
+        );
+        $stmt->execute(['table_name' => 'clients', 'column_name' => 'show_ads_metrics']);
+
+        return self::$adsVisibilitySupported = (int) $stmt->fetchColumn() > 0;
+    }
+
+    public static function adsMetricsEnabled(int $clientId): bool
+    {
+        if (!self::supportsAdsVisibility()) {
+            return true;
+        }
+
+        $stmt = Database::connection()->prepare(
+            'SELECT COALESCE(show_ads_metrics, 1) FROM clients WHERE id = :id LIMIT 1'
+        );
+        $stmt->execute(['id' => $clientId]);
+
+        return (bool) $stmt->fetchColumn();
+    }
+
     public static function all(bool $activeOnly = false): array
     {
         $where = $activeOnly ? "WHERE c.status = 'active'" : '';
+        $adsVisibilityColumn = self::supportsAdsVisibility() ? 'c.show_ads_metrics' : '1 AS show_ads_metrics';
         return Database::connection()->query(
-            'SELECT c.id, c.name, c.slug, c.logo_url, c.brand_color, c.status, c.created_at,
+            'SELECT c.id, c.name, c.slug, c.logo_url, c.brand_color, ' . $adsVisibilityColumn . ', c.status, c.created_at,
                     COUNT(cma.id) AS marketplace_count
              FROM clients c
              LEFT JOIN client_marketplace_accounts cma ON cma.client_id = c.id AND cma.is_active = 1
@@ -64,11 +96,14 @@ class Client
 
     public static function create(string $name, string $slug, ?string $logoUrl, ?string $brandColor, array $profile = []): int
     {
+        $hasAdsVisibility = self::supportsAdsVisibility();
         $stmt = Database::connection()->prepare(
-            'INSERT INTO clients (name, slug, logo_url, brand_color, website_url, instagram_url, facebook_url, tiktok_url, whatsapp, notes, status)
-             VALUES (:name, :slug, :logo_url, :brand_color, :website_url, :instagram_url, :facebook_url, :tiktok_url, :whatsapp, :notes, "active")'
+            'INSERT INTO clients (name, slug, logo_url, brand_color, website_url, instagram_url, facebook_url, tiktok_url, whatsapp, notes, status'
+            . ($hasAdsVisibility ? ', show_ads_metrics' : '') . ')
+             VALUES (:name, :slug, :logo_url, :brand_color, :website_url, :instagram_url, :facebook_url, :tiktok_url, :whatsapp, :notes, "active"'
+            . ($hasAdsVisibility ? ', :show_ads_metrics' : '') . ')'
         );
-        $stmt->execute([
+        $params = [
             'name' => $name,
             'slug' => $slug,
             'logo_url' => $logoUrl ?: null,
@@ -79,13 +114,18 @@ class Client
             'tiktok_url' => ($profile['tiktok_url'] ?? '') ?: null,
             'whatsapp' => ($profile['whatsapp'] ?? '') ?: null,
             'notes' => ($profile['notes'] ?? '') ?: null,
-        ]);
+        ];
+        if ($hasAdsVisibility) {
+            $params['show_ads_metrics'] = (int) ($profile['show_ads_metrics'] ?? 1) === 1 ? 1 : 0;
+        }
+        $stmt->execute($params);
 
         return (int) Database::connection()->lastInsertId();
     }
 
     public static function update(int $id, string $name, string $slug, ?string $logoUrl, ?string $brandColor, string $status, array $profile = []): void
     {
+        $hasAdsVisibility = self::supportsAdsVisibility();
         $stmt = Database::connection()->prepare(
             'UPDATE clients
              SET name = :name,
@@ -98,10 +138,11 @@ class Client
                  tiktok_url = :tiktok_url,
                  whatsapp = :whatsapp,
                  notes = :notes,
-                 status = :status
+                 status = :status'
+             . ($hasAdsVisibility ? ', show_ads_metrics = :show_ads_metrics' : '') . '
              WHERE id = :id'
         );
-        $stmt->execute([
+        $params = [
             'name' => $name,
             'slug' => $slug,
             'logo_url' => $logoUrl ?: null,
@@ -114,7 +155,11 @@ class Client
             'notes' => ($profile['notes'] ?? '') ?: null,
             'status' => $status,
             'id' => $id,
-        ]);
+        ];
+        if ($hasAdsVisibility) {
+            $params['show_ads_metrics'] = (int) ($profile['show_ads_metrics'] ?? 1) === 1 ? 1 : 0;
+        }
+        $stmt->execute($params);
     }
 
     public static function marketplaceIds(int $clientId): array

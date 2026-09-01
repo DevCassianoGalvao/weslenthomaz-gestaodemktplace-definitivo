@@ -40,6 +40,7 @@ class ClientController
         }
 
         [$data, $errors] = $this->validate($_POST);
+        $data['show_ads_metrics'] = Auth::isAdmin() ? ((int) ($_POST['show_ads_metrics'] ?? 0) === 1 ? 1 : 0) : 1;
         [$uploadedLogo, $uploadError] = $this->handleLogoUpload($_FILES['logo_file'] ?? null, $data['slug']);
         if ($uploadedLogo !== null) {
             $data['logo_url'] = $uploadedLogo;
@@ -129,6 +130,9 @@ class ClientController
         }
 
         [$data, $errors] = $this->validate($_POST, $clientId);
+        $data['show_ads_metrics'] = Auth::isAdmin()
+            ? ((int) ($_POST['show_ads_metrics'] ?? 0) === 1 ? 1 : 0)
+            : (int) ($client['show_ads_metrics'] ?? 1);
         [$uploadedLogo, $uploadError] = $this->handleLogoUpload($_FILES['logo_file'] ?? null, $data['slug'], $client['logo_url'] ?? null);
         if ($uploadedLogo !== null) {
             $data['logo_url'] = $uploadedLogo;

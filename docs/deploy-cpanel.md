@@ -159,6 +159,19 @@ remove nem altera os lançamentos existentes. Depois da confirmação, apague
 `public/migrate-ads-metrics.php` e `database/migrate_ads_metrics.php` pelo
 File Manager.
 
+Para configurar quais clientes podem ver Ads e ROAS, abra uma vez:
+
+```
+https://gestorweslen.com.br/paineldemetricas/migrate-client-ads-visibility.php
+```
+
+A coluna começa ligada (`1`) para todos os clientes existentes. Depois da
+confirmação, apague `public/migrate-client-ads-visibility.php` e
+`database/migrate_client_ads_visibility.php` pelo File Manager.
+
+A ocultação vale para o painel e a exportação do cliente. O admin e o
+colaborador continuam vendo e lançando Ads internamente.
+
 Acesse no navegador:
 
 ```

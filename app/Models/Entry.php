@@ -86,13 +86,16 @@ class Entry
                 $accountId = (int) $accountId;
                 $marketplaceId = (int) ($row['marketplace_id'] ?? 0);
                 $newValueCents = (int) $row['value_cents'];
-                $newAdSpendCents = max(0, (int) ($row['ad_spend_cents'] ?? 0));
                 $newOrdersCount = (int) $row['orders_count'];
 
                 $existing = $before[$accountId] ?? null;
                 $oldValueCents = $existing['value_cents'] ?? 0;
                 $oldAdSpendCents = $existing['ad_spend_cents'] ?? 0;
                 $oldOrdersCount = $existing['orders_count'] ?? 0;
+                $hasNewAdSpend = array_key_exists('ad_spend_cents', $row);
+                $newAdSpendCents = $hasNewAdSpend
+                    ? max(0, (int) $row['ad_spend_cents'])
+                    : $oldAdSpendCents;
 
                 $params = [
                     'period_id' => $periodId,

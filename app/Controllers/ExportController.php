@@ -19,7 +19,7 @@ class ExportController
     /** Cliente final exportando o próprio dashboard. */
     public function ownDashboard(): void
     {
-        $this->streamForClient((int) Auth::clientId(), $_GET['month'] ?? null, $_GET['from'] ?? null, $_GET['to'] ?? null);
+        $this->streamForClient((int) Auth::clientId(), $_GET['month'] ?? null, $_GET['from'] ?? null, $_GET['to'] ?? null, true);
     }
 
     /** Admin/operador exportando o dashboard de um cliente específico. */
@@ -32,7 +32,7 @@ class ExportController
             return;
         }
 
-        $this->streamForClient($clientId, $_GET['month'] ?? null, $_GET['from'] ?? null, $_GET['to'] ?? null);
+        $this->streamForClient($clientId, $_GET['month'] ?? null, $_GET['from'] ?? null, $_GET['to'] ?? null, false);
     }
 
     /** Admin/operador exportando o comparativo entre todos os clientes da carteira. */
@@ -94,17 +94,17 @@ class ExportController
         $this->stream($spreadsheet, 'comparativo-clientes-' . date('Y-m-d-His') . '.xlsx');
     }
 
-    private function streamForClient(int $clientId, ?string $month, ?string $from, ?string $to): void
+    private function streamForClient(int $clientId, ?string $month, ?string $from, ?string $to, bool $respectClientVisibility): void
     {
         $client = Client::find($clientId);
-        $data = Dashboard::forClient($clientId, $month, $from, $to);
+        $data = Dashboard::forClient($clientId, $month, $from, $to, $respectClientVisibility);
 
         if (!function_exists('mb_strlen')) {
             $this->streamClientCsv($client, $data);
         }
 
         $spreadsheet = new Spreadsheet();
-        $this->fillSummarySheet($spreadsheet->getActiveSheet(), $client, $data);
+        $this->fillSummarySheet($spreadsheet->getActiveSheet(), $client, $data, (bool) $data['adsEnabled']);
 
         $detailSheet = $spreadsheet->createSheet();
         $this->fillDetailSheet($detailSheet, $data['periods'], $data['adsEnabled']);
@@ -141,21 +141,29 @@ class ExportController
     private function streamClientCsv(array $client, array $data): void
     {
         $kpis = $data['kpis'];
+        $adsEnabled = (bool) $data['adsEnabled'];
         $csvRows = [
             ['Cliente', $client['name']],
             ['Competência selecionada', $data['selectedMonth'] ?? '-'],
             [],
             ['Indicador', 'Valor'],
             ['Faturamento do período', number_format(((int) $kpis['total_value_cents']) / 100, 2, ',', '.')],
-            ['Investimento em Ads', number_format(((int) $kpis['total_ad_spend_cents']) / 100, 2, ',', '.')],
-            ['ROAS geral', $kpis['roas'] !== null ? number_format((float) $kpis['roas'], 2, ',', '.') . 'x' : '-'],
             ['Variação vs. mês anterior', $kpis['variation_pct'] !== null ? number_format((float) $kpis['variation_pct'], 1, ',', '.') . '%' : '-'],
             ['Melhor desempenho', $kpis['best_marketplace']['name'] ?? '-'],
             ['Maior queda', $kpis['worst_marketplace']['name'] ?? '-'],
             ['Ticket médio geral', $kpis['ticket_medio_cents'] !== null ? number_format(((int) $kpis['ticket_medio_cents']) / 100, 2, ',', '.') : '-'],
             [],
-            ['Competência', 'Período', 'Marketplace', 'Conta', 'Faturamento (R$)', 'Investimento Ads (R$)', 'ROAS', 'Pedidos', 'Participação'],
         ];
+
+        if ($adsEnabled) {
+            array_splice($csvRows, 5, 0, [
+                ['Investimento em Ads', number_format(((int) $kpis['total_ad_spend_cents']) / 100, 2, ',', '.')],
+                ['ROAS geral', $kpis['roas'] !== null ? number_format((float) $kpis['roas'], 2, ',', '.') . 'x' : '-'],
+            ]);
+            $csvRows[] = ['Competência', 'Período', 'Marketplace', 'Conta', 'Faturamento (R$)', 'Investimento Ads (R$)', 'ROAS', 'Pedidos', 'Participação'];
+        } else {
+            $csvRows[] = ['Competência', 'Período', 'Marketplace', 'Conta', 'Faturamento (R$)', 'Pedidos', 'Participação'];
+        }
 
         foreach ($data['periods'] as $period) {
             $periodTotalCents = array_sum(array_column($period['entries'], 'value_cents'));
@@ -167,17 +175,20 @@ class ExportController
             foreach ($period['entries'] as $entry) {
                 $valueCents = (int) $entry['value_cents'];
                 $adSpendCents = (int) $entry['ad_spend_cents'];
-                $csvRows[] = [
+                $csvRow = [
                     $period['reference_month'],
                     $label,
                     $entry['marketplace_name'],
                     $entry['account_name'] ?? '',
                     number_format($valueCents / 100, 2, ',', '.'),
-                    number_format($adSpendCents / 100, 2, ',', '.'),
-                    $adSpendCents > 0 ? number_format($valueCents / $adSpendCents, 2, ',', '.') . 'x' : '-',
-                    (int) $entry['orders_count'],
-                    $periodTotalCents > 0 ? number_format(($valueCents / $periodTotalCents) * 100, 1, ',', '.') . '%' : '0,0%',
                 ];
+                if ($adsEnabled) {
+                    $csvRow[] = number_format($adSpendCents / 100, 2, ',', '.');
+                    $csvRow[] = $adSpendCents > 0 ? number_format($valueCents / $adSpendCents, 2, ',', '.') . 'x' : '-';
+                }
+                $csvRow[] = (int) $entry['orders_count'];
+                $csvRow[] = $periodTotalCents > 0 ? number_format(($valueCents / $periodTotalCents) * 100, 1, ',', '.') . '%' : '0,0%';
+                $csvRows[] = $csvRow;
             }
         }
 
@@ -204,7 +215,7 @@ class ExportController
         exit;
     }
 
-    private function fillSummarySheet(Worksheet $sheet, array $client, array $data): void
+    private function fillSummarySheet(Worksheet $sheet, array $client, array $data, bool $adsEnabled): void
     {
         $sheet->setTitle('Resumo');
         $kpis = $data['kpis'];
@@ -217,13 +228,17 @@ class ExportController
 
         $rows = [
             ['Faturamento do período', $kpis['total_value_cents'] / 100, 'currency'],
-            ['Investimento em Ads', $kpis['total_ad_spend_cents'] / 100, 'currency'],
-            ['ROAS geral', $kpis['roas'], 'roas'],
             ['Variação vs. mês anterior', $kpis['variation_pct'] !== null ? $kpis['variation_pct'] / 100 : null, 'percent'],
             ['Melhor desempenho', $kpis['best_marketplace']['name'] ?? '—', 'text'],
             ['Maior queda', $kpis['worst_marketplace']['name'] ?? '—', 'text'],
             ['Ticket médio geral', $kpis['ticket_medio_cents'] !== null ? $kpis['ticket_medio_cents'] / 100 : null, 'currency'],
         ];
+        if ($adsEnabled) {
+            array_splice($rows, 1, 0, [
+                ['Investimento em Ads', $kpis['total_ad_spend_cents'] / 100, 'currency'],
+                ['ROAS geral', $kpis['roas'], 'roas'],
+            ]);
+        }
 
         $row = 4;
         $sheet->setCellValue("A{$row}", 'Indicador');
@@ -258,39 +273,48 @@ class ExportController
             $sheet->getStyle("A{$row}")->getFont()->setBold(true);
             $row++;
 
-            $sheet->setCellValue("A{$row}", 'Marketplace');
-            $sheet->setCellValue("B{$row}", 'Faturamento');
-            $sheet->setCellValue("C{$row}", 'Investimento Ads');
-            $sheet->setCellValue("D{$row}", 'ROAS');
-            $sheet->setCellValue("E{$row}", 'Pedidos');
-            $sheet->setCellValue("F{$row}", 'Ticket médio');
-            $sheet->getStyle("A{$row}:F{$row}")->getFont()->setBold(true);
+            $breakdownHeaders = ['Marketplace', 'Faturamento'];
+            if ($adsEnabled) {
+                $breakdownHeaders[] = 'Investimento Ads';
+                $breakdownHeaders[] = 'ROAS';
+            }
+            $breakdownHeaders[] = 'Pedidos';
+            $breakdownHeaders[] = 'Ticket médio';
+            $lastBreakdownColumn = $adsEnabled ? 'F' : 'D';
+            $sheet->fromArray($breakdownHeaders, null, "A{$row}");
+            $sheet->getStyle("A{$row}:{$lastBreakdownColumn}{$row}")->getFont()->setBold(true);
             $row++;
 
             foreach ($kpis['marketplace_breakdown'] as $mp) {
                 $sheet->setCellValue("A{$row}", $mp['name']);
                 $sheet->setCellValue("B{$row}", $mp['total_value_cents'] / 100);
                 $sheet->getStyle("B{$row}")->getNumberFormat()->setFormatCode('"R$" #,##0.00');
-                $sheet->setCellValue("C{$row}", $mp['total_ad_spend_cents'] / 100);
-                $sheet->getStyle("C{$row}")->getNumberFormat()->setFormatCode('"R$" #,##0.00');
-                if ($mp['roas'] !== null) {
-                    $sheet->setCellValue("D{$row}", $mp['roas']);
-                    $sheet->getStyle("D{$row}")->getNumberFormat()->setFormatCode('0.00"x"');
-                } else {
-                    $sheet->setCellValue("D{$row}", '—');
+                $ordersColumn = 'C';
+                $ticketColumn = 'D';
+                if ($adsEnabled) {
+                    $sheet->setCellValue("C{$row}", $mp['total_ad_spend_cents'] / 100);
+                    $sheet->getStyle("C{$row}")->getNumberFormat()->setFormatCode('"R$" #,##0.00');
+                    if ($mp['roas'] !== null) {
+                        $sheet->setCellValue("D{$row}", $mp['roas']);
+                        $sheet->getStyle("D{$row}")->getNumberFormat()->setFormatCode('0.00"x"');
+                    } else {
+                        $sheet->setCellValue("D{$row}", '—');
+                    }
+                    $ordersColumn = 'E';
+                    $ticketColumn = 'F';
                 }
-                $sheet->setCellValue("E{$row}", $mp['total_orders']);
+                $sheet->setCellValue("{$ordersColumn}{$row}", $mp['total_orders']);
                 if ($mp['ticket_medio_cents'] !== null) {
-                    $sheet->setCellValue("F{$row}", $mp['ticket_medio_cents'] / 100);
-                    $sheet->getStyle("F{$row}")->getNumberFormat()->setFormatCode('"R$" #,##0.00');
+                    $sheet->setCellValue("{$ticketColumn}{$row}", $mp['ticket_medio_cents'] / 100);
+                    $sheet->getStyle("{$ticketColumn}{$row}")->getNumberFormat()->setFormatCode('"R$" #,##0.00');
                 } else {
-                    $sheet->setCellValue("F{$row}", '—');
+                    $sheet->setCellValue("{$ticketColumn}{$row}", '—');
                 }
                 $row++;
             }
         }
 
-        foreach (['A', 'B', 'C', 'D', 'E', 'F'] as $col) {
+        foreach ($adsEnabled ? ['A', 'B', 'C', 'D', 'E', 'F'] : ['A', 'B', 'C', 'D'] as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
     }

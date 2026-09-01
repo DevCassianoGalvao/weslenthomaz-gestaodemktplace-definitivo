@@ -59,6 +59,16 @@ $accountRowsJson = json_encode(array_values(array_map(fn($account) => [
                             <input type="color" id="brand_color" name="brand_color" value="<?= $val('brand_color', '#d6b25e') ?>">
                             <?php if (!empty($errors['brand_color'])): ?><div class="field-error"><?= htmlspecialchars($errors['brand_color'], ENT_QUOTES, 'UTF-8') ?></div><?php endif; ?>
                         </div>
+                        <?php if (\App\Core\Auth::isAdmin()): ?>
+                            <div class="field">
+                                <label for="show_ads_metrics">Métricas de Ads e ROAS</label>
+                                <input type="hidden" name="show_ads_metrics" value="0">
+                                <label style="display:flex;align-items:center;gap:8px;font-weight:400;">
+                                    <input type="checkbox" id="show_ads_metrics" name="show_ads_metrics" value="1" <?= ((int) ($values['show_ads_metrics'] ?? 1) === 1) ? 'checked' : '' ?>>
+                                    Exibir investimento em Ads e ROAS para este cliente
+                                </label>
+                            </div>
+                        <?php endif; ?>
                         <div class="field">
                             <label for="logo_url">URL do logo (opcional)</label>
                             <input type="text" id="logo_url" name="logo_url" value="<?= $val('logo_url') ?>" placeholder="ex: empresa.com/logo.png">
