@@ -19,7 +19,7 @@ class ExportController
     /** Cliente final exportando o próprio dashboard. */
     public function ownDashboard(): void
     {
-        $this->streamForClient((int) Auth::clientId(), $_GET['month'] ?? null, $_GET['from'] ?? null, $_GET['to'] ?? null, true);
+        $this->streamForClient((int) Auth::clientId(), $_GET['month'] ?? null, $_GET['from'] ?? null, $_GET['to'] ?? null);
     }
 
     /** Admin/operador exportando o dashboard de um cliente específico. */
@@ -32,7 +32,7 @@ class ExportController
             return;
         }
 
-        $this->streamForClient($clientId, $_GET['month'] ?? null, $_GET['from'] ?? null, $_GET['to'] ?? null, false);
+        $this->streamForClient($clientId, $_GET['month'] ?? null, $_GET['from'] ?? null, $_GET['to'] ?? null);
     }
 
     /** Admin/operador exportando o comparativo entre todos os clientes da carteira. */
@@ -94,10 +94,10 @@ class ExportController
         $this->stream($spreadsheet, 'comparativo-clientes-' . date('Y-m-d-His') . '.xlsx');
     }
 
-    private function streamForClient(int $clientId, ?string $month, ?string $from, ?string $to, bool $respectClientVisibility): void
+    private function streamForClient(int $clientId, ?string $month, ?string $from, ?string $to): void
     {
         $client = Client::find($clientId);
-        $data = Dashboard::forClient($clientId, $month, $from, $to, $respectClientVisibility);
+        $data = Dashboard::forClient($clientId, $month, $from, $to);
 
         if (!function_exists('mb_strlen')) {
             $this->streamClientCsv($client, $data);

@@ -169,8 +169,9 @@ A coluna começa ligada (`1`) para todos os clientes existentes. Depois da
 confirmação, apague `public/migrate-client-ads-visibility.php` e
 `database/migrate_client_ads_visibility.php` pelo File Manager.
 
-A ocultação vale para o painel e a exportação do cliente. O admin e o
-colaborador continuam vendo e lançando Ads internamente.
+A ocultação vale para o painel e a exportação do cliente, inclusive na visão
+interna do admin. O admin e o colaborador continuam vendo e lançando Ads nos
+formulários internos de períodos.
 
 Acesse no navegador:
 

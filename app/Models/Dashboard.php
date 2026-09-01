@@ -246,7 +246,7 @@ class Dashboard
      * Monta todos os dados necessários para renderizar a view dashboard/client,
      * reaproveitado tanto pela visão do cliente final quanto pelo drill-down do admin.
      */
-    public static function forClient(int $clientId, ?string $month, ?string $from, ?string $to, bool $respectClientVisibility = true): array
+    public static function forClient(int $clientId, ?string $month, ?string $from, ?string $to): array
     {
         $referenceMonths = self::referenceMonths($clientId);
 
@@ -257,8 +257,7 @@ class Dashboard
         return [
             'referenceMonths' => $referenceMonths,
             'selectedMonth' => $month,
-            'adsEnabled' => Entry::supportsAdsSpend()
-                && (!$respectClientVisibility || Client::adsMetricsEnabled($clientId)),
+            'adsEnabled' => Entry::supportsAdsSpend() && Client::adsMetricsEnabled($clientId),
             'from' => $from,
             'to' => $to,
             'kpis' => self::kpis($clientId, $month),

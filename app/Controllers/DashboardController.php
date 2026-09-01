@@ -23,8 +23,7 @@ class DashboardController
             $clientId,
             $_GET['month'] ?? null,
             $_GET['from'] ?? null,
-            $_GET['to'] ?? null,
-            false
+            $_GET['to'] ?? null
         );
 
         View::render('dashboard/client', array_merge($data, [
