@@ -37,11 +37,61 @@ class Client
         return (bool) $stmt->fetchColumn();
     }
 
-    public static function all(bool $activeOnly = false): array
+    private static ?bool $monthlyGoalSupported = null;
+
+    public static function supportsMonthlyGoal(): bool
     {
-        $where = $activeOnly ? "WHERE c.status = 'active'" : '';
+        if (self::$monthlyGoalSupported !== null) {
+            return self::$monthlyGoalSupported;
+        }
+
+        $stmt = Database::connection()->prepare(
+            'SELECT COUNT(*) FROM information_schema.columns
+             WHERE table_schema = DATABASE() AND table_name = :table_name AND column_name = :column_name'
+        );
+        $stmt->execute(['table_name' => 'clients', 'column_name' => 'monthly_goal_cents']);
+
+        return self::$monthlyGoalSupported = (int) $stmt->fetchColumn() > 0;
+    }
+
+    public static function monthlyGoalCents(int $clientId): ?int
+    {
+        if (!self::supportsMonthlyGoal()) {
+            return null;
+        }
+
+        $stmt = Database::connection()->prepare('SELECT monthly_goal_cents FROM clients WHERE id = :id LIMIT 1');
+        $stmt->execute(['id' => $clientId]);
+        $value = $stmt->fetchColumn();
+
+        return $value !== null ? (int) $value : null;
+    }
+
+    /**
+     * @param int[]|null $allowedMarketplaceIds quando informado, restringe a clientes que
+     *        possuem ao menos um dos marketplaces permitidos (permissão de colaborador por canal).
+     */
+    public static function all(bool $activeOnly = false, ?array $allowedMarketplaceIds = null): array
+    {
+        $conditions = $activeOnly ? ["c.status = 'active'"] : [];
+        $params = [];
+
+        if (!empty($allowedMarketplaceIds)) {
+            $placeholders = [];
+            foreach (array_values($allowedMarketplaceIds) as $index => $marketplaceId) {
+                $key = "allowed_mp_{$index}";
+                $placeholders[] = ":{$key}";
+                $params[$key] = (int) $marketplaceId;
+            }
+            $conditions[] = 'EXISTS (
+                SELECT 1 FROM client_marketplaces cm2
+                WHERE cm2.client_id = c.id AND cm2.marketplace_id IN (' . implode(',', $placeholders) . ')
+            )';
+        }
+
+        $where = !empty($conditions) ? 'WHERE ' . implode(' AND ', $conditions) : '';
         $adsVisibilityColumn = self::supportsAdsVisibility() ? 'c.show_ads_metrics' : '1 AS show_ads_metrics';
-        return Database::connection()->query(
+        $stmt = Database::connection()->prepare(
             'SELECT c.id, c.name, c.slug, c.logo_url, c.brand_color, ' . $adsVisibilityColumn . ', c.status, c.created_at,
                     COUNT(cma.id) AS marketplace_count
              FROM clients c
@@ -49,7 +99,10 @@ class Client
              ' . $where . '
              GROUP BY c.id
              ORDER BY c.name'
-        )->fetchAll();
+        );
+        $stmt->execute($params);
+
+        return $stmt->fetchAll();
     }
 
     public static function delete(int $id): void
@@ -97,11 +150,12 @@ class Client
     public static function create(string $name, string $slug, ?string $logoUrl, ?string $brandColor, array $profile = []): int
     {
         $hasAdsVisibility = self::supportsAdsVisibility();
+        $hasMonthlyGoal = self::supportsMonthlyGoal();
         $stmt = Database::connection()->prepare(
             'INSERT INTO clients (name, slug, logo_url, brand_color, website_url, instagram_url, facebook_url, tiktok_url, whatsapp, notes, status'
-            . ($hasAdsVisibility ? ', show_ads_metrics' : '') . ')
+            . ($hasAdsVisibility ? ', show_ads_metrics' : '') . ($hasMonthlyGoal ? ', monthly_goal_cents' : '') . ')
              VALUES (:name, :slug, :logo_url, :brand_color, :website_url, :instagram_url, :facebook_url, :tiktok_url, :whatsapp, :notes, "active"'
-            . ($hasAdsVisibility ? ', :show_ads_metrics' : '') . ')'
+            . ($hasAdsVisibility ? ', :show_ads_metrics' : '') . ($hasMonthlyGoal ? ', :monthly_goal_cents' : '') . ')'
         );
         $params = [
             'name' => $name,
@@ -118,6 +172,9 @@ class Client
         if ($hasAdsVisibility) {
             $params['show_ads_metrics'] = (int) ($profile['show_ads_metrics'] ?? 1) === 1 ? 1 : 0;
         }
+        if ($hasMonthlyGoal) {
+            $params['monthly_goal_cents'] = $profile['monthly_goal_cents'] ?? null;
+        }
         $stmt->execute($params);
 
         return (int) Database::connection()->lastInsertId();
@@ -126,6 +183,7 @@ class Client
     public static function update(int $id, string $name, string $slug, ?string $logoUrl, ?string $brandColor, string $status, array $profile = []): void
     {
         $hasAdsVisibility = self::supportsAdsVisibility();
+        $hasMonthlyGoal = self::supportsMonthlyGoal();
         $stmt = Database::connection()->prepare(
             'UPDATE clients
              SET name = :name,
@@ -139,7 +197,8 @@ class Client
                  whatsapp = :whatsapp,
                  notes = :notes,
                  status = :status'
-             . ($hasAdsVisibility ? ', show_ads_metrics = :show_ads_metrics' : '') . '
+             . ($hasAdsVisibility ? ', show_ads_metrics = :show_ads_metrics' : '')
+             . ($hasMonthlyGoal ? ', monthly_goal_cents = :monthly_goal_cents' : '') . '
              WHERE id = :id'
         );
         $params = [
@@ -158,6 +217,9 @@ class Client
         ];
         if ($hasAdsVisibility) {
             $params['show_ads_metrics'] = (int) ($profile['show_ads_metrics'] ?? 1) === 1 ? 1 : 0;
+        }
+        if ($hasMonthlyGoal) {
+            $params['monthly_goal_cents'] = $profile['monthly_goal_cents'] ?? null;
         }
         $stmt->execute($params);
     }

@@ -198,6 +198,9 @@ $accentColor = (!empty($client['brand_color']) && preg_match('/^#[0-9a-fA-F]{6}$
                                 <div class="kpi-value <?= $kpis['variation_pct'] >= 0 ? 'kpi-positive' : 'kpi-negative' ?>" data-countup="<?= $kpis['variation_pct'] ?>" data-format="percent">
                                     <?= $kpis['variation_pct'] >= 0 ? '+' : '' ?><?= htmlspecialchars(number_format($kpis['variation_pct'], 1, ',', '.'), ENT_QUOTES, 'UTF-8') ?>%
                                 </div>
+                                <?php if (!empty($kpis['variation_is_projected'])): ?>
+                                    <div class="kpi-sub">comparado ao mesmo período do mês anterior (mês em andamento)</div>
+                                <?php endif; ?>
                             <?php endif; ?>
                         </div>
                         <div class="kpi-card">
@@ -223,6 +226,27 @@ $accentColor = (!empty($client['brand_color']) && preg_match('/^#[0-9a-fA-F]{6}$
                             <div class="kpi-value" <?= $kpis['ticket_medio_cents'] !== null ? 'data-countup="' . ((int) $kpis['ticket_medio_cents'] / 100) . '" data-format="currency"' : '' ?>><?= $kpis['ticket_medio_cents'] !== null ? Format::centsToBrl((int) $kpis['ticket_medio_cents']) : '—' ?></div>
                         </div>
                     </div>
+
+                    <?php if (!empty($kpis['goal_cents'])): ?>
+                        <?php $goalReached = $kpis['goal_progress_pct'] >= 100; ?>
+                        <div class="goal-card">
+                            <div class="goal-card-header">
+                                <div class="kpi-label">Meta de faturamento do mês</div>
+                                <div class="<?= $goalReached ? 'kpi-positive' : '' ?>" style="font-weight:600;">
+                                    <?= number_format($kpis['goal_progress_pct'], 1, ',', '.') ?>%
+                                    <?= $goalReached ? ' · meta batida' : '' ?>
+                                </div>
+                            </div>
+                            <div class="goal-progress-track">
+                                <div class="goal-progress-bar<?= $goalReached ? ' goal-reached' : '' ?>" style="width:<?= $kpis['goal_progress_pct'] ?>%;"></div>
+                            </div>
+                            <div class="goal-card-footer">
+                                <span><?= Format::centsToBrl((int) $kpis['total_value_cents']) ?> alcançado</span>
+                                <span>meta: <?= Format::centsToBrl((int) $kpis['goal_cents']) ?></span>
+                                <span><?= $goalReached ? 'meta atingida' : Format::centsToBrl((int) $kpis['goal_remaining_cents']) . ' restante' ?></span>
+                            </div>
+                        </div>
+                    <?php endif; ?>
 
                     <?php if (!empty($kpis['marketplace_breakdown'])): ?>
                         <div class="section-title">Desempenho por marketplace</div>

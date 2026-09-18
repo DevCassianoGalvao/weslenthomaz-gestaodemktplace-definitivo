@@ -2,6 +2,8 @@
 
 namespace App\Core;
 
+use App\Models\User;
+
 class Auth
 {
     public static function check(): bool
@@ -16,6 +18,9 @@ class Auth
         $_SESSION['user_name'] = $user['name'];
         $_SESSION['user_role'] = $user['role'];
         $_SESSION['user_client_id'] = $user['client_id'];
+        $_SESSION['user_marketplace_ids'] = $user['role'] === 'operator'
+            ? User::marketplaceIds((int) $user['id'])
+            : [];
     }
 
     public static function logout(): void
@@ -57,5 +62,21 @@ class Auth
     public static function isClient(): bool
     {
         return self::role() === 'client';
+    }
+
+    /**
+     * IDs de marketplace aos quais o usuário logado está restrito, ou null quando não
+     * há restrição (admin, cliente final, ou operador sem canais marcados — vê tudo).
+     * @return int[]|null
+     */
+    public static function allowedMarketplaceIds(): ?array
+    {
+        if (self::role() !== 'operator') {
+            return null;
+        }
+
+        $ids = $_SESSION['user_marketplace_ids'] ?? [];
+
+        return empty($ids) ? null : $ids;
     }
 }

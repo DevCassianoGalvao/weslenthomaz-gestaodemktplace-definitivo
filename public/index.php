@@ -119,6 +119,7 @@ $router->get('/clients/{id}/dashboard/export', [new ExportController(), 'forClie
 
 $router->get('/collaborators', [new CollaboratorController(), 'index'], $adminOnly);
 $router->post('/collaborators', [new CollaboratorController(), 'store'], $adminOnly);
+$router->post('/collaborators/{id}/marketplaces', [new CollaboratorController(), 'updateMarketplaces'], $adminOnly);
 
 $router->post('/clients/{id}/delete', [new ClientController(), 'delete'], $adminOnly);
 

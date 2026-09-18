@@ -173,6 +173,32 @@ A ocultação vale para o painel e a exportação do cliente, inclusive na visã
 interna do admin. O admin e o colaborador continuam vendo e lançando Ads nos
 formulários internos de períodos.
 
+> Ads e ROAS foram desativados globalmente no painel (feedback do cliente —
+> confundia a operação). A coluna `show_ads_metrics` e a migration acima ficam
+> só como histórico; não é mais preciso rodá-la em instalações novas.
+
+Para habilitar a meta de faturamento mensal por cliente, abra uma vez:
+
+```
+https://gestorweslen.com.br/paineldemetricas/migrate-client-goal.php
+```
+
+Adiciona a coluna `clients.monthly_goal_cents` (vazia para clientes
+existentes); nenhum lançamento é alterado. Depois da confirmação, apague
+`public/migrate-client-goal.php` e `database/migrate_client_goal.php`.
+
+Para habilitar a permissão de colaborador por marketplace, abra uma vez:
+
+```
+https://gestorweslen.com.br/paineldemetricas/migrate-user-marketplaces.php
+```
+
+Cria a tabela `user_marketplaces`. Sem vínculo nela, o colaborador continua
+enxergando todos os marketplaces (nenhum acesso existente é restringido
+automaticamente) — o admin marca os canais permitidos em "Colaboradores".
+Depois da confirmação, apague `public/migrate-user-marketplaces.php` e
+`database/migrate_user_marketplaces.php`.
+
 Acesse no navegador:
 
 ```

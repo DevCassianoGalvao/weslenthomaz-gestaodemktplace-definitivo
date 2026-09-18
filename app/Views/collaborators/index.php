@@ -1,8 +1,10 @@
 <?php
 /** @var array $collaborators */
+/** @var array $marketplaces */
 /** @var array $errors */
 /** @var array $old */
 $val = fn(string $key) => htmlspecialchars($old[$key] ?? '', ENT_QUOTES, 'UTF-8');
+$oldMarketplaceIds = array_map('intval', $old['marketplace_ids'] ?? []);
 ?>
 <!doctype html>
 <html lang="pt-BR">
@@ -25,19 +27,44 @@ $val = fn(string $key) => htmlspecialchars($old[$key] ?? '', ENT_QUOTES, 'UTF-8'
                 </div>
 
                 <?php if (($_GET['created'] ?? '') === '1'): ?><div class="alert-success">Colaborador criado com sucesso.</div><?php endif; ?>
+                <?php if (($_GET['permissions_updated'] ?? '') === '1'): ?><div class="alert-success">Permissões de marketplace atualizadas.</div><?php endif; ?>
 
                 <table style="margin-bottom:28px;">
-                    <thead><tr><th>Nome</th><th>E-mail</th><th>Perfil</th><th>Criado em</th></tr></thead>
+                    <thead><tr><th>Nome</th><th>E-mail</th><th>Perfil</th><th>Marketplaces permitidos</th><th>Criado em</th></tr></thead>
                     <tbody>
                         <?php foreach ($collaborators as $collaborator): ?>
                             <tr>
                                 <td><?= htmlspecialchars($collaborator['name'], ENT_QUOTES, 'UTF-8') ?></td>
                                 <td><?= htmlspecialchars($collaborator['email'], ENT_QUOTES, 'UTF-8') ?></td>
                                 <td><span class="badge badge-active"><span class="badge-dot"></span>Colaborador</span></td>
+                                <td>
+                                    <?php if (empty($marketplaces)): ?>
+                                        <span class="text-muted">—</span>
+                                    <?php else: ?>
+                                        <details>
+                                            <summary style="cursor:pointer;">
+                                                <?= empty($collaborator['marketplace_names']) ? 'Todos (sem restrição)' : htmlspecialchars(implode(', ', $collaborator['marketplace_names']), ENT_QUOTES, 'UTF-8') ?>
+                                            </summary>
+                                            <form method="post" action="<?= url('/collaborators/' . (int) $collaborator['id'] . '/marketplaces') ?>" style="margin-top:8px;">
+                                                <?= \App\Core\Csrf::field() ?>
+                                                <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:8px;">
+                                                    <?php foreach ($marketplaces as $marketplace): ?>
+                                                        <label style="display:flex;align-items:center;gap:6px;font-weight:400;">
+                                                            <input type="checkbox" name="marketplace_ids[]" value="<?= (int) $marketplace['id'] ?>" <?= in_array((int) $marketplace['id'], $collaborator['marketplace_ids'] ?? [], true) ? 'checked' : '' ?>>
+                                                            <?= htmlspecialchars($marketplace['name'], ENT_QUOTES, 'UTF-8') ?>
+                                                        </label>
+                                                    <?php endforeach; ?>
+                                                </div>
+                                                <p class="text-muted" style="margin:0 0 8px;">Nenhum canal marcado = enxerga todos os marketplaces.</p>
+                                                <button type="submit" class="btn-secondary">Salvar permissões</button>
+                                            </form>
+                                        </details>
+                                    <?php endif; ?>
+                                </td>
                                 <td><?= htmlspecialchars(date('d/m/Y', strtotime($collaborator['created_at'])), ENT_QUOTES, 'UTF-8') ?></td>
                             </tr>
                         <?php endforeach; ?>
-                        <?php if (empty($collaborators)): ?><tr><td colspan="4" class="text-muted">Nenhum colaborador cadastrado.</td></tr><?php endif; ?>
+                        <?php if (empty($collaborators)): ?><tr><td colspan="5" class="text-muted">Nenhum colaborador cadastrado.</td></tr><?php endif; ?>
                     </tbody>
                 </table>
 
@@ -60,6 +87,20 @@ $val = fn(string $key) => htmlspecialchars($old[$key] ?? '', ENT_QUOTES, 'UTF-8'
                             <input type="password" id="password" name="password" minlength="8" required autocomplete="new-password">
                             <?php if (!empty($errors['password'])): ?><div class="field-error"><?= htmlspecialchars($errors['password'], ENT_QUOTES, 'UTF-8') ?></div><?php endif; ?>
                         </div>
+                        <?php if (!empty($marketplaces)): ?>
+                            <div class="field" style="grid-column:1 / -1;">
+                                <label>Marketplaces permitidos (opcional)</label>
+                                <div style="display:flex;flex-wrap:wrap;gap:12px;">
+                                    <?php foreach ($marketplaces as $marketplace): ?>
+                                        <label style="display:flex;align-items:center;gap:6px;font-weight:400;">
+                                            <input type="checkbox" name="marketplace_ids[]" value="<?= (int) $marketplace['id'] ?>" <?= in_array((int) $marketplace['id'], $oldMarketplaceIds, true) ? 'checked' : '' ?>>
+                                            <?= htmlspecialchars($marketplace['name'], ENT_QUOTES, 'UTF-8') ?>
+                                        </label>
+                                    <?php endforeach; ?>
+                                </div>
+                                <p class="text-muted">Deixe tudo desmarcado para o colaborador enxergar todos os marketplaces (sem restrição).</p>
+                            </div>
+                        <?php endif; ?>
                     </div>
                     <p class="text-muted">O colaborador poderá cadastrar e editar dados operacionais, mas não poderá excluir ou desativar informações.</p>
                     <div class="form-actions"><button type="submit" class="btn">Criar colaborador</button></div>

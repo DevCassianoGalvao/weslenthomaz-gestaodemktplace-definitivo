@@ -50,6 +50,7 @@ class HomeController
     /** Visão interna (admin/operador): comparativo entre todos os clientes da carteira (PRD 5.6). */
     private function renderComparativo(): void
     {
+        $allowedMarketplaceIds = Auth::allowedMarketplaceIds();
         $months = Dashboard::allReferenceMonths();
         $month = $_GET['month'] ?? null;
         if ($month === null || !in_array($month, $months, true)) {
@@ -59,8 +60,8 @@ class HomeController
         View::render('dashboard/comparativo', [
             'months' => $months,
             'selectedMonth' => $month,
-            'rows' => $month ? Dashboard::clientComparison($month) : [],
-            'clients' => Client::all(),
+            'rows' => $month ? Dashboard::clientComparison($month, $allowedMarketplaceIds) : [],
+            'clients' => Client::all(false, $allowedMarketplaceIds),
         ]);
     }
 }

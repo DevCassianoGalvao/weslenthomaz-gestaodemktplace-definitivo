@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS clients (
   whatsapp VARCHAR(40) NULL,
   notes VARCHAR(255) NULL,
   show_ads_metrics TINYINT(1) NOT NULL DEFAULT 1,
+  monthly_goal_cents BIGINT NULL DEFAULT NULL,
   status ENUM('active','paused') DEFAULT 'active',
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -40,6 +41,14 @@ CREATE TABLE IF NOT EXISTS marketplaces (
   color VARCHAR(7) NULL,
   icon VARCHAR(60) NULL,
   is_active BOOLEAN DEFAULT TRUE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS user_marketplaces (
+  user_id INT NOT NULL,
+  marketplace_id INT NOT NULL,
+  PRIMARY KEY (user_id, marketplace_id),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (marketplace_id) REFERENCES marketplaces(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS client_marketplaces (

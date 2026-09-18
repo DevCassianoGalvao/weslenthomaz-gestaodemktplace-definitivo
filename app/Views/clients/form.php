@@ -12,6 +12,9 @@
 $isEdit = $mode === 'edit';
 $accountUser = $accountUser ?? null;
 $values = array_merge($client ?? [], $old ?? []);
+if (!isset($values['monthly_goal']) && !empty($values['monthly_goal_cents'])) {
+    $values['monthly_goal'] = number_format(((int) $values['monthly_goal_cents']) / 100, 2, ',', '.');
+}
 $val = fn(string $key, string $default = '') => htmlspecialchars($values[$key] ?? $default, ENT_QUOTES, 'UTF-8');
 $marketplaceAccounts = $marketplaceAccounts ?? [];
 $marketplaceOptionsJson = json_encode(array_map(fn($marketplace) => [
@@ -61,12 +64,9 @@ $accountRowsJson = json_encode(array_values(array_map(fn($account) => [
                         </div>
                         <?php if (\App\Core\Auth::isAdmin()): ?>
                             <div class="field">
-                                <label for="show_ads_metrics">Métricas de Ads e ROAS</label>
-                                <input type="hidden" name="show_ads_metrics" value="0">
-                                <label style="display:flex;align-items:center;gap:8px;font-weight:400;">
-                                    <input type="checkbox" id="show_ads_metrics" name="show_ads_metrics" value="1" <?= ((int) ($values['show_ads_metrics'] ?? 1) === 1) ? 'checked' : '' ?>>
-                                    Exibir investimento em Ads e ROAS para este cliente
-                                </label>
+                                <label for="monthly_goal">Meta de faturamento mensal (opcional)</label>
+                                <input type="text" inputmode="decimal" id="monthly_goal" name="monthly_goal" value="<?= $val('monthly_goal') ?>" placeholder="ex: 50000,00">
+                                <?php if (!empty($errors['monthly_goal'])): ?><div class="field-error"><?= htmlspecialchars($errors['monthly_goal'], ENT_QUOTES, 'UTF-8') ?></div><?php endif; ?>
                             </div>
                         <?php endif; ?>
                         <div class="field">

@@ -43,7 +43,7 @@ class ExportController
         if ($month === null || !in_array($month, $months, true)) {
             $month = $months[0] ?? null;
         }
-        $rows = $month ? Dashboard::clientComparison($month) : [];
+        $rows = $month ? Dashboard::clientComparison($month, Auth::allowedMarketplaceIds()) : [];
 
         if (!function_exists('mb_strlen')) {
             $this->streamComparisonCsv($month, $rows);
@@ -97,7 +97,7 @@ class ExportController
     private function streamForClient(int $clientId, ?string $month, ?string $from, ?string $to): void
     {
         $client = Client::find($clientId);
-        $data = Dashboard::forClient($clientId, $month, $from, $to);
+        $data = Dashboard::forClient($clientId, $month, $from, $to, Auth::allowedMarketplaceIds());
 
         if (!function_exists('mb_strlen')) {
             $this->streamClientCsv($client, $data);

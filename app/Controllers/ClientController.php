@@ -14,7 +14,7 @@ class ClientController
     public function index(): void
     {
         View::render('clients/index', [
-            'clients' => Client::all(),
+            'clients' => Client::all(false, Auth::allowedMarketplaceIds()),
         ]);
     }
 
@@ -40,7 +40,6 @@ class ClientController
         }
 
         [$data, $errors] = $this->validate($_POST);
-        $data['show_ads_metrics'] = Auth::isAdmin() ? ((int) ($_POST['show_ads_metrics'] ?? 0) === 1 ? 1 : 0) : 1;
         [$uploadedLogo, $uploadError] = $this->handleLogoUpload($_FILES['logo_file'] ?? null, $data['slug']);
         if ($uploadedLogo !== null) {
             $data['logo_url'] = $uploadedLogo;
@@ -130,9 +129,6 @@ class ClientController
         }
 
         [$data, $errors] = $this->validate($_POST, $clientId);
-        $data['show_ads_metrics'] = Auth::isAdmin()
-            ? ((int) ($_POST['show_ads_metrics'] ?? 0) === 1 ? 1 : 0)
-            : (int) ($client['show_ads_metrics'] ?? 1);
         [$uploadedLogo, $uploadError] = $this->handleLogoUpload($_FILES['logo_file'] ?? null, $data['slug'], $client['logo_url'] ?? null);
         if ($uploadedLogo !== null) {
             $data['logo_url'] = $uploadedLogo;
@@ -249,6 +245,18 @@ class ClientController
             }
         }
 
+        $monthlyGoal = trim($input['monthly_goal'] ?? '');
+        $monthlyGoalCents = null;
+        if ($monthlyGoal !== '') {
+            $normalizedGoal = str_replace('.', '', $monthlyGoal);
+            $normalizedGoal = str_replace(',', '.', $normalizedGoal);
+            if (!is_numeric($normalizedGoal) || (float) $normalizedGoal < 0) {
+                $errors['monthly_goal'] = 'Informe um valor numérico válido para a meta.';
+            } else {
+                $monthlyGoalCents = (int) round(((float) $normalizedGoal) * 100);
+            }
+        }
+
         $data = [
             'name' => $name,
             'slug' => $slug,
@@ -260,6 +268,8 @@ class ClientController
             'tiktok_url' => $this->normalizeUrl($input['tiktok_url'] ?? ''),
             'whatsapp' => trim($input['whatsapp'] ?? ''),
             'notes' => trim($input['notes'] ?? ''),
+            'monthly_goal' => $monthlyGoal,
+            'monthly_goal_cents' => $monthlyGoalCents,
         ];
 
         return [$data, $errors];

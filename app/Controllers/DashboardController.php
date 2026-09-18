@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Core\Auth;
 use App\Core\View;
 use App\Models\Client;
 use App\Models\Dashboard;
@@ -19,17 +20,20 @@ class DashboardController
             return;
         }
 
+        $allowedMarketplaceIds = Auth::allowedMarketplaceIds();
+
         $data = Dashboard::forClient(
             $clientId,
             $_GET['month'] ?? null,
             $_GET['from'] ?? null,
-            $_GET['to'] ?? null
+            $_GET['to'] ?? null,
+            $allowedMarketplaceIds
         );
 
         View::render('dashboard/client', array_merge($data, [
             'client' => $client,
             'isInternal' => true,
-            'allClients' => Client::all(),
+            'allClients' => Client::all(false, $allowedMarketplaceIds),
         ]));
     }
 }
