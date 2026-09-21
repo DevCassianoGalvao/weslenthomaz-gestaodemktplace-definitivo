@@ -199,7 +199,13 @@ $accentColor = (!empty($client['brand_color']) && preg_match('/^#[0-9a-fA-F]{6}$
                                     <?= $kpis['variation_pct'] >= 0 ? '+' : '' ?><?= htmlspecialchars(number_format($kpis['variation_pct'], 1, ',', '.'), ENT_QUOTES, 'UTF-8') ?>%
                                 </div>
                                 <?php if (!empty($kpis['variation_is_projected'])): ?>
-                                    <div class="kpi-sub">comparado ao mesmo período do mês anterior (mês em andamento)</div>
+                                    <div class="kpi-sub">
+                                        <?php if (!empty($kpis['variation_cutoff_day'])): ?>
+                                            dados até o dia <?= (int) $kpis['variation_cutoff_day'] ?> · comparado aos primeiros <?= (int) $kpis['variation_cutoff_day'] ?> dias do mês anterior
+                                        <?php else: ?>
+                                            comparado ao mesmo período do mês anterior (mês em andamento)
+                                        <?php endif; ?>
+                                    </div>
                                 <?php endif; ?>
                             <?php endif; ?>
                         </div>

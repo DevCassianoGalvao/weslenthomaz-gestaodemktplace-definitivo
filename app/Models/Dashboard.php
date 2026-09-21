@@ -46,23 +46,55 @@ class Dashboard
      * incompleto frente a um mês anterior já fechado (feedback do cliente).
      * Fora do mês corrente (competência já fechada), retorna o total anterior sem alteração.
      */
-    private static function proratedPreviousTotal(string $month, string $previousMonth, int $rawPreviousTotalCents): int
+    private static function proratedPreviousTotal(int $cutoffDay, string $previousMonth, int $rawPreviousTotalCents): int
     {
-        $today = new DateTime('today');
-        if ($today->format('Y-m') !== $month) {
-            return $rawPreviousTotalCents;
-        }
-
-        $dayOfMonth = (int) $today->format('j');
         $prevMonthDate = DateTime::createFromFormat('Y-m-d', $previousMonth . '-01');
         $daysInPreviousMonth = (int) $prevMonthDate->format('t');
-        $elapsedDays = min($dayOfMonth, $daysInPreviousMonth);
+        $elapsedDays = min(max($cutoffDay, 1), $daysInPreviousMonth);
 
         if ($elapsedDays >= $daysInPreviousMonth) {
             return $rawPreviousTotalCents;
         }
 
         return (int) round($rawPreviousTotalCents * ($elapsedDays / $daysInPreviousMonth));
+    }
+
+    /**
+     * Último dia do mês com dado lançado (limitado a hoje) — base da proporção. Usar o dia de
+     * hoje inflava a base quando os lançamentos só cobrem parte do mês atual.
+     */
+    private static function cutoffDayFromEndDate(?string $maxEndDate): int
+    {
+        $today = new DateTime('today');
+        $cutoff = $maxEndDate ? min(new DateTime($maxEndDate), $today) : $today;
+
+        return (int) $cutoff->format('j');
+    }
+
+    private static function cutoffDay(int $clientId, string $month): int
+    {
+        $stmt = Database::connection()->prepare(
+            'SELECT MAX(end_date) FROM periods WHERE client_id = :client_id AND reference_month = :month'
+        );
+        $stmt->execute(['client_id' => $clientId, 'month' => $month]);
+
+        return self::cutoffDayFromEndDate($stmt->fetchColumn() ?: null);
+    }
+
+    /** @return array<int,int> client_id => dia de corte */
+    private static function cutoffDaysByClient(string $month): array
+    {
+        $stmt = Database::connection()->prepare(
+            'SELECT client_id, MAX(end_date) FROM periods WHERE reference_month = :month GROUP BY client_id'
+        );
+        $stmt->execute(['month' => $month]);
+
+        $days = [];
+        foreach ($stmt->fetchAll(\PDO::FETCH_NUM) as [$clientId, $maxEnd]) {
+            $days[(int) $clientId] = self::cutoffDayFromEndDate($maxEnd ?: null);
+        }
+
+        return $days;
     }
 
     private static function isMonthInProgress(string $month): bool
@@ -237,11 +269,12 @@ class Dashboard
         $hasPrevious = self::hasDataForMonth($clientId, $previousMonth);
         $previous = $hasPrevious ? self::marketplaceTotalsForMonth($clientId, $previousMonth, $allowedMarketplaceIds) : [];
         $monthInProgress = self::isMonthInProgress($month);
+        $cutoffDay = $monthInProgress ? self::cutoffDay($clientId, $month) : null;
         $previousByMarketplace = [];
         foreach ($previous as $row) {
             $rawValue = (int) $row['total_value_cents'];
-            $previousByMarketplace[(int) $row['id']] = $monthInProgress
-                ? self::proratedPreviousTotal($month, $previousMonth, $rawValue)
+            $previousByMarketplace[(int) $row['id']] = $cutoffDay !== null
+                ? self::proratedPreviousTotal($cutoffDay, $previousMonth, $rawValue)
                 : $rawValue;
         }
 
@@ -293,6 +326,7 @@ class Dashboard
             'ticket_medio_cents' => $totalOrders > 0 ? (int) round($totalValueCents / $totalOrders) : null,
             'variation_pct' => $variationPct,
             'variation_is_projected' => $monthInProgress && $hasPrevious,
+            'variation_cutoff_day' => $cutoffDay,
             'best_marketplace' => $bestMarketplace,
             'worst_marketplace' => $worstMarketplace,
             'marketplace_breakdown' => $breakdown,
@@ -362,15 +396,15 @@ class Dashboard
         $previousMonth = self::previousMonth($month);
         $current = self::totalsByClientForMonth($month, $allowedMarketplaceIds);
         $previous = self::totalsByClientForMonth($previousMonth, $allowedMarketplaceIds);
-        $monthInProgress = self::isMonthInProgress($month);
+        $cutoffDays = self::isMonthInProgress($month) ? self::cutoffDaysByClient($month) : [];
 
         $rows = [];
         foreach (Client::all(true, $allowedMarketplaceIds) as $client) {
             $clientId = (int) $client['id'];
             $cur = $current[$clientId] ?? ['value' => 0, 'orders' => 0];
             $prev = $previous[$clientId] ?? null;
-            if ($prev && $monthInProgress) {
-                $prev['value'] = self::proratedPreviousTotal($month, $previousMonth, $prev['value']);
+            if ($prev && isset($cutoffDays[$clientId])) {
+                $prev['value'] = self::proratedPreviousTotal($cutoffDays[$clientId], $previousMonth, $prev['value']);
             }
 
             $variation = ($prev && $prev['value'] > 0)
