@@ -13,14 +13,17 @@
  * @var bool $adsEnabled
  * @var bool $isInternal
  * @var array|null $allClients
+ * @var bool|null $presentationMode
  */
 use App\Core\Format;
 
 $isInternal = $isInternal ?? false;
+$presentationMode = $isInternal && !empty($presentationMode);
 $hasAnyData = !empty($referenceMonths);
 $dashboardUrl = $isInternal ? url('/clients/' . (int) $client['id'] . '/dashboard') : url('/dashboard');
 $currentFilters = array_filter(['month' => $selectedMonth, 'from' => $from, 'to' => $to]);
 $exportUrl = $dashboardUrl . '/export' . (empty($currentFilters) ? '' : '?' . http_build_query($currentFilters));
+$presentationToggleUrl = $dashboardUrl . '?' . http_build_query(array_merge($currentFilters, ['presentation' => $presentationMode ? '0' : '1']));
 
 // --- Dados para os gráficos (ApexCharts) ---
 $evolutionCategories = array_column($monthlyTotals, 'reference_month');
@@ -169,12 +172,30 @@ $accentColor = (!empty($client['brand_color']) && preg_match('/^#[0-9a-fA-F]{6}$
                         </div>
                         <button type="submit" class="btn" style="width:auto;">Filtrar</button>
                         <a href="<?= htmlspecialchars($dashboardUrl, ENT_QUOTES, 'UTF-8') ?>" class="btn-secondary" style="text-decoration:none;display:inline-flex;align-items:center;">Limpar</a>
-                        <a href="<?= htmlspecialchars($exportUrl, ENT_QUOTES, 'UTF-8') ?>" class="btn-link" style="text-decoration:none;margin-left:auto;">Exportar Excel</a>
+                        <?php if ($isInternal): ?>
+                            <a href="<?= htmlspecialchars($presentationToggleUrl, ENT_QUOTES, 'UTF-8') ?>" class="<?= $presentationMode ? 'btn' : 'btn-secondary' ?>" style="text-decoration:none;display:inline-flex;align-items:center;margin-left:auto;">
+                                <?= $presentationMode ? 'Modo apresentação: ligado' : 'Ocultar quedas (modo apresentação)' ?>
+                            </a>
+                        <?php endif; ?>
+                        <a href="<?= htmlspecialchars($exportUrl, ENT_QUOTES, 'UTF-8') ?>" class="btn-link" style="text-decoration:none;<?= $isInternal ? '' : 'margin-left:auto;' ?>">Exportar Excel</a>
                     </form>
+                    <?php if ($presentationMode): ?>
+                        <p class="text-muted" style="margin:-12px 0 16px;">Modo apresentação ligado — indicadores de queda ocultos nesta tela (dados reais continuam intactos). <a href="<?= htmlspecialchars($dashboardUrl . (empty($currentFilters) ? '' : '?' . http_build_query($currentFilters)), ENT_QUOTES, 'UTF-8') ?>">Desligar</a></p>
+                    <?php endif; ?>
 
+                    <?php
+                        $variationHidden = $presentationMode && $kpis['variation_pct'] !== null && $kpis['variation_pct'] < 0;
+                        $variationIconClass = $kpis['variation_pct'] === null || $variationHidden
+                            ? ''
+                            : ($kpis['variation_pct'] >= 0 ? 'kpi-icon-positive' : 'kpi-icon-negative');
+                        $variationIcon = $kpis['variation_pct'] !== null && $kpis['variation_pct'] < 0 && !$variationHidden ? 'trending-down' : 'trending-up';
+                    ?>
                     <div class="kpi-grid">
                         <div class="kpi-card">
-                            <div class="kpi-label">Faturamento do período</div>
+                            <div class="kpi-head">
+                                <div class="kpi-label">Faturamento do período</div>
+                                <span class="kpi-icon"><?= \App\Core\Icon::svg('wallet', 17) ?></span>
+                            </div>
                             <div class="kpi-value" data-countup="<?= (int) $kpis['total_value_cents'] / 100 ?>" data-format="currency"><?= Format::centsToBrl((int) $kpis['total_value_cents']) ?></div>
                         </div>
                         <?php if ($adsEnabled): ?>
@@ -190,10 +211,16 @@ $accentColor = (!empty($client['brand_color']) && preg_match('/^#[0-9a-fA-F]{6}$
                             </div>
                         <?php endif; ?>
                         <div class="kpi-card">
-                            <div class="kpi-label">Variação vs. mês anterior</div>
+                            <div class="kpi-head">
+                                <div class="kpi-label">Variação vs. mês anterior</div>
+                                <span class="kpi-icon <?= $variationIconClass ?>"><?= \App\Core\Icon::svg($variationIcon, 17) ?></span>
+                            </div>
                             <?php if ($kpis['variation_pct'] === null): ?>
                                 <div class="kpi-value">—</div>
                                 <div class="kpi-sub">sem dado do mês anterior</div>
+                            <?php elseif ($variationHidden): ?>
+                                <div class="kpi-value">—</div>
+                                <div class="kpi-sub">oculto no modo apresentação</div>
                             <?php else: ?>
                                 <div class="kpi-value <?= $kpis['variation_pct'] >= 0 ? 'kpi-positive' : 'kpi-negative' ?>" data-countup="<?= $kpis['variation_pct'] ?>" data-format="percent">
                                     <?= $kpis['variation_pct'] >= 0 ? '+' : '' ?><?= htmlspecialchars(number_format($kpis['variation_pct'], 1, ',', '.'), ENT_QUOTES, 'UTF-8') ?>%
@@ -210,7 +237,10 @@ $accentColor = (!empty($client['brand_color']) && preg_match('/^#[0-9a-fA-F]{6}$
                             <?php endif; ?>
                         </div>
                         <div class="kpi-card">
-                            <div class="kpi-label">Melhor desempenho</div>
+                            <div class="kpi-head">
+                                <div class="kpi-label">Melhor desempenho</div>
+                                <span class="kpi-icon kpi-icon-positive"><?= \App\Core\Icon::svg('award', 17) ?></span>
+                            </div>
                             <?php if ($kpis['best_marketplace']): ?>
                                 <div class="kpi-value"><?= htmlspecialchars($kpis['best_marketplace']['name'], ENT_QUOTES, 'UTF-8') ?></div>
                                 <div class="kpi-sub" data-countup="<?= (int) $kpis['best_marketplace']['total_value_cents'] / 100 ?>" data-format="currency"><?= Format::centsToBrl((int) $kpis['best_marketplace']['total_value_cents']) ?></div>
@@ -218,17 +248,25 @@ $accentColor = (!empty($client['brand_color']) && preg_match('/^#[0-9a-fA-F]{6}$
                                 <div class="kpi-value">—</div>
                             <?php endif; ?>
                         </div>
+                        <?php if (!$presentationMode): ?>
+                            <div class="kpi-card">
+                                <div class="kpi-head">
+                                    <div class="kpi-label">Maior queda</div>
+                                    <span class="kpi-icon kpi-icon-negative"><?= \App\Core\Icon::svg('trending-down', 17) ?></span>
+                                </div>
+                                <?php if ($kpis['worst_marketplace']): ?>
+                                    <div class="kpi-value"><?= htmlspecialchars($kpis['worst_marketplace']['name'], ENT_QUOTES, 'UTF-8') ?></div>
+                                    <div class="kpi-sub kpi-negative" data-countup="<?= (int) $kpis['worst_marketplace']['total_value_cents'] / 100 ?>" data-format="currency"><?= Format::centsToBrl((int) $kpis['worst_marketplace']['total_value_cents']) ?></div>
+                                <?php else: ?>
+                                    <div class="kpi-value">—</div>
+                                <?php endif; ?>
+                            </div>
+                        <?php endif; ?>
                         <div class="kpi-card">
-                            <div class="kpi-label">Maior queda</div>
-                            <?php if ($kpis['worst_marketplace']): ?>
-                                <div class="kpi-value"><?= htmlspecialchars($kpis['worst_marketplace']['name'], ENT_QUOTES, 'UTF-8') ?></div>
-                                <div class="kpi-sub kpi-negative" data-countup="<?= (int) $kpis['worst_marketplace']['total_value_cents'] / 100 ?>" data-format="currency"><?= Format::centsToBrl((int) $kpis['worst_marketplace']['total_value_cents']) ?></div>
-                            <?php else: ?>
-                                <div class="kpi-value">—</div>
-                            <?php endif; ?>
-                        </div>
-                        <div class="kpi-card">
-                            <div class="kpi-label">Ticket médio geral</div>
+                            <div class="kpi-head">
+                                <div class="kpi-label">Ticket médio geral</div>
+                                <span class="kpi-icon"><?= \App\Core\Icon::svg('receipt', 17) ?></span>
+                            </div>
                             <div class="kpi-value" <?= $kpis['ticket_medio_cents'] !== null ? 'data-countup="' . ((int) $kpis['ticket_medio_cents'] / 100) . '" data-format="currency"' : '' ?>><?= $kpis['ticket_medio_cents'] !== null ? Format::centsToBrl((int) $kpis['ticket_medio_cents']) : '—' ?></div>
                         </div>
                     </div>
@@ -237,7 +275,10 @@ $accentColor = (!empty($client['brand_color']) && preg_match('/^#[0-9a-fA-F]{6}$
                         <?php $goalReached = $kpis['goal_progress_pct'] >= 100; ?>
                         <div class="goal-card">
                             <div class="goal-card-header">
-                                <div class="kpi-label">Meta de faturamento do mês</div>
+                                <div class="goal-card-title">
+                                    <span class="kpi-icon kpi-icon-positive"><?= \App\Core\Icon::svg('target', 17) ?></span>
+                                    <div class="kpi-label">Meta de faturamento do mês</div>
+                                </div>
                                 <div class="<?= $goalReached ? 'kpi-positive' : '' ?>" style="font-weight:600;">
                                     <?= number_format($kpis['goal_progress_pct'], 1, ',', '.') ?>%
                                     <?= $goalReached ? ' · meta batida' : '' ?>

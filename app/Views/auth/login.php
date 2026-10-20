@@ -9,6 +9,7 @@
 <body>
     <div class="center-screen">
         <div class="card" id="login-card">
+            <div class="login-mark"><?= \App\Core\Icon::svg('store', 22) ?></div>
             <h1><span>Painel de métricas Gestor</span><span>Weslen</span></h1>
 
             <?php if (!empty($error)): ?>

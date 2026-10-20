@@ -22,6 +22,12 @@ class Icon
         'external-link' => '<path d="M14 4h6v6"/><path d="M20 4 10 14"/><path d="M18 13v5.5A1.5 1.5 0 0 1 16.5 20h-11A1.5 1.5 0 0 1 4 18.5v-11A1.5 1.5 0 0 1 5.5 6H11"/>',
         'check-circle' => '<circle cx="12" cy="12" r="9"/><path d="m8.5 12.5 2.5 2.5 4.5-5.5"/>',
         'store' => '<path d="M4 9.5 5 4h14l1 5.5"/><path d="M4 9.5A2 2 0 0 0 6 11.5a2 2 0 0 0 2-2 2 2 0 0 0 2 2 2 2 0 0 0 2-2 2 2 0 0 0 2 2 2 2 0 0 0 2-2 2 2 0 0 0 2 2A2 2 0 0 0 20 9.5"/><path d="M5.5 11.5V19a1 1 0 0 0 1 1H10v-4.5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1V20h3.5a1 1 0 0 0 1-1v-7.5"/>',
+        'trending-up' => '<path d="M23 6 13.5 15.5 8.5 10.5 1 18"/><path d="M17 6h6v6"/>',
+        'trending-down' => '<path d="M23 18 13.5 8.5 8.5 13.5 1 6"/><path d="M17 18h6v-6"/>',
+        'target' => '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5.2"/><circle cx="12" cy="12" r="1.4"/>',
+        'award' => '<circle cx="12" cy="8" r="6.5"/><path d="M8.2 13.9 7 23l5-3 5 3-1.2-9.1"/>',
+        'wallet' => '<path d="M3 7a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v1h1.5A1.5 1.5 0 0 1 21 9.5v8A1.5 1.5 0 0 1 19.5 19H5a2 2 0 0 1-2-2V7Z"/><path d="M16 13.5h2.2"/>',
+        'receipt' => '<path d="M6 3h12v18l-2-1.4L14 21l-2-1.4L10 21l-2-1.4L6 21V3Z"/><path d="M9 8h6M9 12h6"/>',
     ];
 
     public static function svg(string $name, int $size = 20): string

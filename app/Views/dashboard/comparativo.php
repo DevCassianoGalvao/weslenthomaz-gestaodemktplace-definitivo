@@ -63,19 +63,31 @@ foreach ($rows as $row) {
 
                     <div class="kpi-grid comparison-kpi-grid">
                         <div class="kpi-card">
-                            <div class="kpi-label">Faturamento da carteira</div>
+                            <div class="kpi-head">
+                                <div class="kpi-label">Faturamento da carteira</div>
+                                <span class="kpi-icon"><?= \App\Core\Icon::svg('wallet', 17) ?></span>
+                            </div>
                             <div class="kpi-value" data-countup="<?= $portfolioValueCents / 100 ?>" data-format="currency"><?= Format::centsToBrl($portfolioValueCents) ?></div>
                         </div>
                         <div class="kpi-card">
-                            <div class="kpi-label">Pedidos no mês</div>
+                            <div class="kpi-head">
+                                <div class="kpi-label">Pedidos no mês</div>
+                                <span class="kpi-icon"><?= \App\Core\Icon::svg('receipt', 17) ?></span>
+                            </div>
                             <div class="kpi-value" data-countup="<?= $portfolioOrders ?>" data-format="number"><?= $portfolioOrders ?></div>
                         </div>
                         <div class="kpi-card">
-                            <div class="kpi-label">Ticket médio da carteira</div>
+                            <div class="kpi-head">
+                                <div class="kpi-label">Ticket médio da carteira</div>
+                                <span class="kpi-icon"><?= \App\Core\Icon::svg('bar-chart', 17) ?></span>
+                            </div>
                             <div class="kpi-value" <?= $portfolioTicketCents !== null ? 'data-countup="' . ($portfolioTicketCents / 100) . '" data-format="currency"' : '' ?>><?= $portfolioTicketCents !== null ? Format::centsToBrl($portfolioTicketCents) : '—' ?></div>
                         </div>
                         <div class="kpi-card">
-                            <div class="kpi-label">Clientes com faturamento</div>
+                            <div class="kpi-head">
+                                <div class="kpi-label">Clientes com faturamento</div>
+                                <span class="kpi-icon kpi-icon-positive"><?= \App\Core\Icon::svg('users', 17) ?></span>
+                            </div>
                             <div class="kpi-value"><?= $activeClients ?> / <?= count($rows) ?></div>
                         </div>
                     </div>

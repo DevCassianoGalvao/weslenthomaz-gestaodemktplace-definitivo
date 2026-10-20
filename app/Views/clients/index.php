@@ -31,12 +31,19 @@
                         </thead>
                         <tbody>
                             <?php foreach ($clients as $client): ?>
+                                <?php $initials = strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', $client['name']), 0, 2)) ?: '--'; ?>
                                 <tr>
                                     <td>
-                                        <?php if (!empty($client['brand_color'])): ?>
-                                            <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:<?= htmlspecialchars($client['brand_color'], ENT_QUOTES, 'UTF-8') ?>;margin-right:6px;"></span>
-                                        <?php endif; ?>
-                                        <?= htmlspecialchars($client['name'], ENT_QUOTES, 'UTF-8') ?>
+                                        <div class="row-identity">
+                                            <span class="avatar-sm" <?= !empty($client['brand_color']) ? 'style="background:' . htmlspecialchars($client['brand_color'], ENT_QUOTES, 'UTF-8') . '22;color:' . htmlspecialchars($client['brand_color'], ENT_QUOTES, 'UTF-8') . ';"' : '' ?>>
+                                                <?php if (!empty($client['logo_url'])): ?>
+                                                    <img src="<?= htmlspecialchars($client['logo_url'], ENT_QUOTES, 'UTF-8') ?>" alt="">
+                                                <?php else: ?>
+                                                    <?= htmlspecialchars($initials, ENT_QUOTES, 'UTF-8') ?>
+                                                <?php endif; ?>
+                                            </span>
+                                            <?= htmlspecialchars($client['name'], ENT_QUOTES, 'UTF-8') ?>
+                                        </div>
                                     </td>
                                     <td><?= (int) $client['marketplace_count'] ?></td>
                                     <td>

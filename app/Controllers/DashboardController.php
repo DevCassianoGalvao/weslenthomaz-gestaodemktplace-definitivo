@@ -34,6 +34,9 @@ class DashboardController
             'client' => $client,
             'isInternal' => true,
             'allClients' => Client::all(false, $allowedMarketplaceIds),
+            // Modo apresentação: oculta indicadores de queda antes de printar/gravar pro cliente final.
+            // Puramente visual (query param, não grava nada) — os dados reais continuam intactos em todo o resto do sistema.
+            'presentationMode' => ($_GET['presentation'] ?? '') === '1',
         ]));
     }
 }
