@@ -14,7 +14,7 @@ use App\Core\Icon;
 <body>
     <div class="app-shell">
         <?php $active = 'clients'; require __DIR__ . '/../partials/sidebar.php'; ?>
-        <main class="app-main">
+        <main class="app-main"><?php require __DIR__ . '/../partials/topbar.php'; ?>
             <div class="content">
                 <?php if (($_GET['saved'] ?? '') === '1'): ?>
                     <div class="alert-success" id="saved-banner" style="display:flex;align-items:center;gap:8px;">

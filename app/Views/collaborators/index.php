@@ -17,7 +17,7 @@ $oldMarketplaceIds = array_map('intval', $old['marketplace_ids'] ?? []);
 <body>
     <div class="app-shell">
         <?php $active = 'collaborators'; require __DIR__ . '/../partials/sidebar.php'; ?>
-        <main class="app-main">
+        <main class="app-main"><?php require __DIR__ . '/../partials/topbar.php'; ?>
             <div class="content">
                 <div class="content-header">
                     <div>

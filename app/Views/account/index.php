@@ -17,7 +17,7 @@ $val = fn(string $key) => htmlspecialchars($values[$key] ?? '', ENT_QUOTES, 'UTF
 <body>
     <div class="app-shell">
         <?php $active = ''; require __DIR__ . '/../partials/sidebar.php'; ?>
-        <main class="app-main">
+        <main class="app-main"><?php require __DIR__ . '/../partials/topbar.php'; ?>
             <div class="content">
                 <div class="content-header">
                     <div>

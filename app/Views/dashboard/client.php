@@ -86,7 +86,7 @@ $accentColor = (!empty($client['brand_color']) && preg_match('/^#[0-9a-fA-F]{6}$
 <body>
     <div class="app-shell">
         <?php $active = 'dashboard'; require __DIR__ . '/../partials/sidebar.php'; ?>
-        <main class="app-main">
+        <main class="app-main"><?php require __DIR__ . '/../partials/topbar.php'; ?>
             <div class="content dashboard-page client-dashboard">
                 <?php if ($isInternal): ?>
                     <div class="dashboard-tabs">

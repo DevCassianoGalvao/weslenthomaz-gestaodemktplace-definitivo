@@ -9,7 +9,7 @@
 <body>
     <div class="app-shell">
         <?php $active = 'clients'; require __DIR__ . '/../partials/sidebar.php'; ?>
-        <main class="app-main">
+        <main class="app-main"><?php require __DIR__ . '/../partials/topbar.php'; ?>
             <div class="content">
                 <div class="content-header">
                     <h1><span class="page-icon"><?= \App\Core\Icon::svg('users', 20) ?></span>Clientes</h1>

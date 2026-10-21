@@ -39,7 +39,7 @@ $accountRowsJson = json_encode(array_values(array_map(fn($account) => [
 <body>
     <div class="app-shell">
         <?php $active = 'clients'; require __DIR__ . '/../partials/sidebar.php'; ?>
-        <main class="app-main">
+        <main class="app-main"><?php require __DIR__ . '/../partials/topbar.php'; ?>
             <div class="content">
                 <h1><?= $isEdit ? 'Editar cliente' : 'Novo cliente' ?></h1>
 

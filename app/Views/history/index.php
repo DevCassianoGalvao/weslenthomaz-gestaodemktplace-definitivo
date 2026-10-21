@@ -23,7 +23,7 @@ $exportUrl = url('/history/export' . (empty($filters) ? '' : '?' . http_build_qu
 <body>
     <div class="app-shell">
         <?php $active = 'history'; require __DIR__ . '/../partials/sidebar.php'; ?>
-        <main class="app-main">
+        <main class="app-main"><?php require __DIR__ . '/../partials/topbar.php'; ?>
             <div class="content">
                 <h1><span class="page-icon"><?= \App\Core\Icon::svg('clock', 20) ?></span>Histórico de alterações</h1>
 

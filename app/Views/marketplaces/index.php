@@ -13,7 +13,7 @@ $val = fn(string $key, string $default = '') => htmlspecialchars($old[$key] ?? $
 <body>
     <div class="app-shell">
         <?php $active = 'marketplaces'; require __DIR__ . '/../partials/sidebar.php'; ?>
-        <main class="app-main">
+        <main class="app-main"><?php require __DIR__ . '/../partials/topbar.php'; ?>
             <div class="content">
                 <h1><span class="page-icon"><?= \App\Core\Icon::svg('shopping-bag', 20) ?></span>Catálogo de marketplaces</h1>
 

@@ -13,9 +13,10 @@
 :root {
   /* Superfícies */
   --bg-base: #050505;
-  --bg-surface: #0d0d0d;
-  --bg-surface-hover: #171717;
-  --bg-inset: #090909;
+  --bg-surface: #111111;
+  --bg-surface-hover: #1a1a1a;
+  --bg-inset: #0a0a0a;
+  --bg-elevated: #161616;
 
   /* Bordas */
   --border-subtle: rgba(255, 255, 255, 0.09);

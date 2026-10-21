@@ -38,7 +38,7 @@ foreach ($rows as $row) {
 <body>
     <div class="app-shell">
         <?php $active = 'dashboard'; require __DIR__ . '/../partials/sidebar.php'; ?>
-        <main class="app-main">
+        <main class="app-main"><?php require __DIR__ . '/../partials/topbar.php'; ?>
             <div class="content">
                 <div class="dashboard-tabs dashboard-tabs-comparison">
                     <a href="<?= url('/dashboard') ?>">Visão geral</a>

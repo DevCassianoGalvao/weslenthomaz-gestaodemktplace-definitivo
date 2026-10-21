@@ -28,7 +28,7 @@ $action = url($isEdit ? '/periods/' . (int) $period['id'] . '/update' : '/client
 <body>
     <div class="app-shell">
         <?php $active = 'clients'; require __DIR__ . '/../partials/sidebar.php'; ?>
-        <main class="app-main">
+        <main class="app-main"><?php require __DIR__ . '/../partials/topbar.php'; ?>
             <div class="content">
                 <h1><?= $isEdit ? 'Editar período' : 'Novo período' ?></h1>
                 <p class="text-muted" style="margin-top:-12px;"><?= htmlspecialchars($client['name'], ENT_QUOTES, 'UTF-8') ?></p>
