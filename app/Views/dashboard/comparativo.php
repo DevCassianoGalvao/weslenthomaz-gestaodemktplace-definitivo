@@ -38,6 +38,46 @@ foreach ($visibleRows as $row) {
         $chartColors[] = $row['brand_color'] ?: '#d6b25e';
     }
 }
+
+// Aba ativa acompanha a URL: /dashboard = Visão geral, /dashboard/comparativo = Comparativo.
+$requestPath = rtrim((string) parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH), '/');
+$isComparativoTab = str_ends_with($requestPath, '/comparativo');
+$tabPath = $isComparativoTab ? '/dashboard/comparativo' : '/dashboard';
+$presentationActive = $hideRevenue || $hideVariation || $showFilter !== 'all';
+
+// Configurações do modo apresentação ficam escondidas na engrenagem da topbar (não aparecem numa reunião).
+ob_start();
+?>
+<form method="get" action="<?= url($tabPath) ?>" class="settings-form">
+    <input type="hidden" name="month" value="<?= htmlspecialchars((string) $selectedMonth, ENT_QUOTES, 'UTF-8') ?>">
+    <div class="settings-title">Modo apresentação</div>
+    <p class="settings-hint">Só muda o que aparece na tela. Os dados e o Excel continuam completos.</p>
+
+    <label class="switch-row">
+        <span class="switch-text"><strong>Ocultar faturamento</strong><small>Valor de cada cliente, card da carteira e gráfico</small></span>
+        <span class="switch"><input type="checkbox" name="hide_revenue" value="1" <?= $hideRevenue ? 'checked' : '' ?> onchange="this.form.submit()"><span class="switch-track"></span></span>
+    </label>
+    <label class="switch-row">
+        <span class="switch-text"><strong>Ocultar variação</strong><small>Coluna com as quedas e crescimentos</small></span>
+        <span class="switch"><input type="checkbox" name="hide_variation" value="1" <?= $hideVariation ? 'checked' : '' ?> onchange="this.form.submit()"><span class="switch-track"></span></span>
+    </label>
+
+    <div class="settings-field">
+        <label for="show">Mostrar clientes</label>
+        <select id="show" name="show" onchange="this.form.submit()">
+            <option value="all" <?= $showFilter === 'all' ? 'selected' : '' ?>>Todos os clientes</option>
+            <option value="growing" <?= $showFilter === 'growing' ? 'selected' : '' ?>>Só crescendo (verde)</option>
+            <option value="falling" <?= $showFilter === 'falling' ? 'selected' : '' ?>>Só em queda</option>
+        </select>
+    </div>
+
+    <?php if ($presentationActive): ?>
+        <a class="settings-reset" href="<?= url($tabPath . ($selectedMonth ? '?month=' . urlencode((string) $selectedMonth) : '')) ?>">Limpar tudo</a>
+    <?php endif; ?>
+</form>
+<?php
+$topbarSettingsPanel = ob_get_clean();
+$topbarSettingsActive = $presentationActive;
 ?>
 <!doctype html>
 <html lang="pt-BR">
@@ -56,15 +96,18 @@ foreach ($visibleRows as $row) {
         <main class="app-main"><?php require __DIR__ . '/../partials/topbar.php'; ?>
             <div class="content">
                 <div class="dashboard-tabs dashboard-tabs-comparison">
-                    <a href="<?= url('/dashboard') ?>">Visão geral</a>
-                    <a href="<?= url('/dashboard/comparativo') ?>" class="nav-active">Comparativo entre clientes</a>
+                    <a href="<?= url('/dashboard') ?>" class="<?= $isComparativoTab ? '' : 'nav-active' ?>">Visão geral</a>
+                    <a href="<?= url('/dashboard/comparativo') ?>" class="<?= $isComparativoTab ? 'nav-active' : '' ?>">Comparativo entre clientes</a>
                 </div>
-                <h1>Comparativo entre clientes</h1>
+                <h1><?= $isComparativoTab ? 'Comparativo entre clientes' : 'Visão geral da carteira' ?></h1>
 
                 <?php if (!$hasAnyData): ?>
                     <div class="empty-state">Nenhum lançamento registrado ainda em nenhum cliente.</div>
                 <?php else: ?>
-                    <form method="get" action="<?= url('/dashboard') ?>" class="filter-bar">
+                    <form method="get" action="<?= url($tabPath) ?>" class="filter-bar">
+                        <?php if ($hideRevenue): ?><input type="hidden" name="hide_revenue" value="1"><?php endif; ?>
+                        <?php if ($hideVariation): ?><input type="hidden" name="hide_variation" value="1"><?php endif; ?>
+                        <?php if ($showFilter !== 'all'): ?><input type="hidden" name="show" value="<?= htmlspecialchars($showFilter, ENT_QUOTES, 'UTF-8') ?>"><?php endif; ?>
                         <div class="field">
                             <label for="month">Competência</label>
                             <select id="month" name="month" onchange="fadeSubmit(this.form)">
@@ -73,35 +116,8 @@ foreach ($visibleRows as $row) {
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                        <div class="field">
-                            <label for="show">Mostrar</label>
-                            <select id="show" name="show" onchange="fadeSubmit(this.form)">
-                                <option value="all" <?= $showFilter === 'all' ? 'selected' : '' ?>>Todos os clientes</option>
-                                <option value="growing" <?= $showFilter === 'growing' ? 'selected' : '' ?>>Só crescendo (verde)</option>
-                                <option value="falling" <?= $showFilter === 'falling' ? 'selected' : '' ?>>Só em queda</option>
-                            </select>
-                        </div>
-                        <div class="field">
-                            <label>Modo apresentação</label>
-                            <div style="display:flex;flex-wrap:wrap;gap:6px 18px;padding-top:8px;">
-                                <label style="display:flex;align-items:center;gap:6px;font-weight:400;margin:0;">
-                                    <input type="checkbox" name="hide_revenue" value="1" <?= $hideRevenue ? 'checked' : '' ?> onchange="fadeSubmit(this.form)">
-                                    Ocultar faturamento
-                                </label>
-                                <label style="display:flex;align-items:center;gap:6px;font-weight:400;margin:0;">
-                                    <input type="checkbox" name="hide_variation" value="1" <?= $hideVariation ? 'checked' : '' ?> onchange="fadeSubmit(this.form)">
-                                    Ocultar variação (quedas)
-                                </label>
-                            </div>
-                        </div>
                         <a href="<?= url('/dashboard/comparativo/export' . ($selectedMonth ? '?month=' . urlencode($selectedMonth) : '')) ?>" class="btn-link" style="text-decoration:none;margin-left:auto;">Exportar Excel</a>
                     </form>
-                    <?php if ($hideRevenue || $hideVariation || $showFilter !== 'all'): ?>
-                        <p class="text-muted" style="margin:-12px 0 16px;">
-                            Modo apresentação ativo — só visual, os dados reais não mudam e o Excel continua completo.
-                            <a href="<?= url('/dashboard' . ($selectedMonth ? '?month=' . urlencode($selectedMonth) : '')) ?>">Limpar</a>
-                        </p>
-                    <?php endif; ?>
 
                     <div class="kpi-grid comparison-kpi-grid" <?= $hideRevenue ? 'style="grid-template-columns:repeat(3,minmax(0,1fr));"' : '' ?>>
                         <?php if (!$hideRevenue): ?>
