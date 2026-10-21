@@ -15,7 +15,7 @@ $val = fn(string $key, string $default = '') => htmlspecialchars($old[$key] ?? $
         <?php $active = 'marketplaces'; require __DIR__ . '/../partials/sidebar.php'; ?>
         <main class="app-main">
             <div class="content">
-                <h1>Catálogo de marketplaces</h1>
+                <h1><span class="page-icon"><?= \App\Core\Icon::svg('shopping-bag', 20) ?></span>Catálogo de marketplaces</h1>
 
                 <table style="margin-bottom:32px;">
                     <thead>

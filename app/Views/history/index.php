@@ -25,7 +25,7 @@ $exportUrl = url('/history/export' . (empty($filters) ? '' : '?' . http_build_qu
         <?php $active = 'history'; require __DIR__ . '/../partials/sidebar.php'; ?>
         <main class="app-main">
             <div class="content">
-                <h1>Histórico de alterações</h1>
+                <h1><span class="page-icon"><?= \App\Core\Icon::svg('clock', 20) ?></span>Histórico de alterações</h1>
 
                 <?php if (($_GET['cleared'] ?? '') === 'client'): ?>
                     <div class="alert-success">Histórico do cliente removido com sucesso.</div>

@@ -12,7 +12,7 @@
         <main class="app-main">
             <div class="content">
                 <div class="content-header">
-                    <h1>Clientes</h1>
+                    <h1><span class="page-icon"><?= \App\Core\Icon::svg('users', 20) ?></span>Clientes</h1>
                     <a href="<?= url('/clients/new') ?>" class="btn-link">+ Novo cliente</a>
                 </div>
 

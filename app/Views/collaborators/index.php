@@ -22,7 +22,7 @@ $oldMarketplaceIds = array_map('intval', $old['marketplace_ids'] ?? []);
                 <div class="content-header">
                     <div>
                         <div class="eyebrow">Equipe e permissões</div>
-                        <h1>Colaboradores</h1>
+                        <h1><span class="page-icon"><?= \App\Core\Icon::svg('users', 20) ?></span>Colaboradores</h1>
                     </div>
                 </div>
 
